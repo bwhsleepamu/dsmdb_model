@@ -1,4 +1,4 @@
-class User < ActiveRecord::Base
+class User < ActiveRecord::Base  
   has_many :authentications
   
   # Include default devise modules. Others available are:
@@ -16,5 +16,12 @@ class User < ActiveRecord::Base
   
   def password_required?
     (authentications.empty? || !password.blank?) && super
+  end
+  
+  # Declaritive Authorization - maps roles to symbols
+  def role_symbols
+      roles.map do |role|
+        role.name.underscore.to_sym
+      end
   end
 end
