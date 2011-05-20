@@ -6,6 +6,6 @@ class Study < ActiveRecord::Base
   has_and_belongs_to_many :irbs
   has_many :subjects
   has_many :personnel_roles
-  has many :personnel, :through => :personnel_roles
+  has_many :personnel, :through => :personnel_roles
   has_many :events
 end
