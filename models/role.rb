@@ -5,4 +5,7 @@ class Role < ActiveRecord::Base
   
   has_and_belongs_to_many :users
 
+  def json_tokens_hash
+    Hash['id' => role_id, 'name' => title]
+  end
 end
