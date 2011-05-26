@@ -3,4 +3,6 @@ class PersonnelRole < ActiveRecord::Base
   
   belongs_to :personnel
   belongs_to :study
+  
+  scope :pi, lambda {where("role_name = '")}
 end

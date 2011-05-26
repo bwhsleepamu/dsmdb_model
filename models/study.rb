@@ -19,6 +19,7 @@ class Study < ActiveRecord::Base
   # Callbacks
   after_update :save_irbs
   before_save :save_personnel
+  before_destroy :delete_personnel_associations, :delete_irb_associations
   
   # Getters
   def pis
@@ -72,4 +73,15 @@ class Study < ActiveRecord::Base
       irb.save(false)
     end
   end
+  
+  
+  # make sure association table entries are deleted before the user is deleted.  
+  # this enforces oracle foreign key constraints
+  def delete_personnel_associations
+    self.personnel.delete(self.personnel)
+  end
+  def delete_irb_associations
+    self.irbs.delete(self.irbs)
+  end
+  
 end
