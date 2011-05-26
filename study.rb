@@ -3,8 +3,8 @@ class Study < ActiveRecord::Base
   set_sequence_name 'id_seq'
   
   # Attributes
-  attr_reader :personnel_tokens  
-  attr_accessible :nickname, :personnel_tokens, :new_irb_attributes, :deleted_irb_ids
+  attr_accessor :pl_tokens, :pi_tokens 
+  attr_accessible :nickname, :new_irb_attributes, :deleted_irb_ids, :pl_tokens, :pi_tokens
   
   # Associations
   has_and_belongs_to_many :irbs
@@ -13,18 +13,30 @@ class Study < ActiveRecord::Base
   has_many :personnel, :through => :personnel_roles
   has_many :events
   
+  
+  # Scopes
+
   # Callbacks
   after_update :save_irbs
-  def personnel_tokens=(ids)
-    self.personnel_ids = ids.split(",")
+  before_save :save_personnel
+  
+  # Getters
+  def pis
+    personnel.find(:all, :include => :personnel_roles, :conditions => "role_name = 'PI'")
+  end
+  
+  def pls
+    personnel.find(:all, :include => :personnel_roles, :conditions => "role_name = 'PL'")
   end
   
   # Setters
   def new_irb_attributes=(irb_attributes)
     # Either find existing Irb object or create new one, then add to study
     irb_attributes.each do |attr|
-      new_irb = Irb.find_or_create_by_protocol_id(attr[:protocol_id]) unless (attr[:protocol_id].empty? || attr[:protocol_id].nil?)
-      irbs << new_irb unless irbs.include?(new_irb)
+      unless (attr[:protocol_id].empty? || attr[:protocol_id].nil?)
+        new_irb = Irb.find_or_create_by_protocol_id(attr[:protocol_id]) 
+        irbs << new_irb unless irbs.include?(new_irb)
+      end
     end
   end
   
@@ -32,6 +44,27 @@ class Study < ActiveRecord::Base
     irb_ids = irb_ids.map(&:to_i)
     irbs_to_delete = irbs.find_all_by_irb_id(irb_ids)
     irbs.delete(irbs_to_delete)
+  end
+  
+  # Helpers
+  def save_personnel
+    # adds personnel with their proper roles (either PI or PL) to the study using tokeninput
+    personnel.clear
+    personnel_roles.clear
+    
+    CUSTOM_LOGGER.info pi_tokens
+    CUSTOM_LOGGER.info pl_tokens
+    
+    
+    pi_ids = pi_tokens.split(',')
+    pl_ids = pl_tokens.split(',')
+    ids_roles = pi_ids.map{|pi| Hash[:id => pi, :role => "PI"]}
+    ids_roles.concat( pl_ids.map{|pi| Hash[:id => pi, :role => "PL"]}) 
+    
+    CUSTOM_LOGGER.info ids_roles
+    ids_roles.each do |ir|
+      personnel_roles.build(:personnel_id => ir[:id], :role_name => ir[:role]) 
+    end
   end
   
   def save_irbs
