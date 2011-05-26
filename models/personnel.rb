@@ -24,7 +24,7 @@ class Personnel < ActiveRecord::Base
     self.first_name = split.first  
     self.last_name = split.last  
   end
-  
+   
   # Helper functions
   def json_tokens_hash
     Hash["id" => personnel_id, "name" => full_name]
