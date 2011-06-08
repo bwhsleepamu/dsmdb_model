@@ -8,7 +8,7 @@ class Datum < ActiveRecord::Base
   
   attr_accessor :unit_name
   
-  before_save :assign_unit, :testing_this
+  before_save :assign_unit
   
   private 
   
