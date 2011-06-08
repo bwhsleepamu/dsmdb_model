@@ -10,5 +10,12 @@ class Event < ActiveRecord::Base
   has_many :data
 
   accepts_nested_attributes_for :data
-
+  
+  after_save :save_data
+  
+  private
+  
+  def save_data
+    self.data.each {|d| d.save}
+  end
 end
