@@ -10,6 +10,22 @@ class Datum < ActiveRecord::Base
   
   before_save :assign_unit
   
+  def value
+    # make sure one and only one field has a value
+    if numeric.nil? && char.nil? && timepoint.nil?
+      CUSTOM_LOGGER.error "NO DATA VALUE! #{datum_id} #{timepoint.nil?}"     
+      raise StandardError, "No data value in datum object"
+    end
+    
+    if !numeric.nil?
+      numeric
+    elsif !char.nil?
+      char.tr('_', ' ')
+    else
+      timepoint
+    end
+  end
+  
   private 
   
   def assign_unit
