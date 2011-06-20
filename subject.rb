@@ -3,6 +3,8 @@ class Subject < ActiveRecord::Base
   set_sequence_name 'id_seq'
   attr_accessible :subject_code, :study_id, :admit_date
   
+  validates :subject_code, :presence => true, :uniqueness => true
+  
   belongs_to :study
   has_many :events
 end
