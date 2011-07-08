@@ -3,9 +3,8 @@ class Personnel < ActiveRecord::Base
   set_sequence_name 'id_seq'
   attr_accessible :first_name, :last_name
   
-  has_many :personnel_roles, :dependent => :destroy
-  has_many :studies, :through => :personnel_roles
-  
+  has_many :studies, :foreign_key => "pi_id"
+  has_many :subjects, :foreign_key => "pl_id"
   
   # Scopes
   scope :find_by_full_name, lambda {|name|

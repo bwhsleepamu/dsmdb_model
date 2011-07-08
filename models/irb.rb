@@ -3,5 +3,5 @@ class Irb < ActiveRecord::Base
   set_sequence_name 'id_seq'
   attr_accessible :protocol_id
   
-  has_and_belongs_to_many :studies
+  has_and_belongs_to_many :subjects
 end
