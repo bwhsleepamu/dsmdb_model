@@ -111,12 +111,16 @@ class Event < ActiveRecord::Base
       convert_units!(value)
       title_ns = title.tr('_', ' ')
       
+      CUSTOM_LOGGER.info "Adding/updating data for #{subject.subject_code} #{name}: #{title} #{title_ns} #{value}"
+      
       data_attributes = value.merge({ :title => title_ns }) 
       data_attributes[:missing] ||= 'f'
 
       if (datum = data.find_by_title(title_ns))
+        CUSTOM_LOGGER.info "Updating existing #{title}"
         datum.update_attributes(data_attributes)
       else
+        CUSTOM_LOGGER.info "Creating new #{title}"
         datum = data.build(data_attributes)
       end
         
