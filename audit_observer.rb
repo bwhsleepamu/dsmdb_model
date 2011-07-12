@@ -14,7 +14,7 @@ class AuditObserver < ActiveRecord::Observer
   private
   
   def log_change(record, type)
-    CUSTOM_LOGGER.info "Logging #{type} on #{record.class.to_s} "
+    #CUSTOM_LOGGER.info "Logging #{type} on #{record.class.to_s} "
     user_id = Authorization.current_user.respond_to?("id") ? Authorization.current_user.id : nil
     c = ChangeLog.new(:reference_id => record.to_key[0], :user => user_id, :change_type => type, :time_stamp => Time.now)
     c.save    

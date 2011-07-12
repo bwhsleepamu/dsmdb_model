@@ -44,7 +44,7 @@ class Event < ActiveRecord::Base
     event
   end
   
-  def self.new_form(form_name, subject_id)
+  def self.new_form(form_name, subject_id, missing_tag)
     # maybe make this the accessor and creator?
 
     CUSTOM_LOGGER.info "Creating form #{form_name} for #{subject_id}"
@@ -54,7 +54,7 @@ class Event < ActiveRecord::Base
     if e.nil?
       event = Event.new(:name => form_name)
       event.subject_id = subject_id
-      event.add_data_by_event_type
+      event.add_data_by_event_type(missing_tag)
       event.add_form_tags
       event.source = Source.new({:user => Authorization.current_user.id, :source_type => "physical", 
                                   :reference => "File Room - folder for subject #{event.subject.subject_code} - #{event.name}"
@@ -66,8 +66,10 @@ class Event < ActiveRecord::Base
     
   end
   
-  def add_data_by_event_type
+  def add_data_by_event_type(missing_tag)
     # each event has data titles associated with it
+    # missing tag allows associated data to set to missing as default, until set with an actual value and changed otherwise
+    
     case name
       when "demographics"
         titles = ["admit date", "suite number", "date of birth", "gender", "ethnic category", "race" ]
@@ -101,7 +103,7 @@ class Event < ActiveRecord::Base
         titles += ["usual day off or weekend waketime (lower bound)", "usual day off or weekend waketime (upper bound)"]
         titles += ["desired bedtime", "desired waketime", "naps per week", "nap time"]
     end
-    titles.each { |title| data.build(:title => title) }
+    titles.each { |title| data.build(:title => title, :missing => missing_tag) }
   end
   
   
@@ -115,7 +117,6 @@ class Event < ActiveRecord::Base
       
       data_attributes = value.merge({ :title => title_ns }) 
       data_attributes[:missing] ||= 'f'
-
       if (datum = data.find_by_title(title_ns))
         CUSTOM_LOGGER.info "Updating existing #{title}"
         datum.update_attributes(data_attributes)
@@ -123,7 +124,11 @@ class Event < ActiveRecord::Base
         CUSTOM_LOGGER.info "Creating new #{title}"
         datum = data.build(data_attributes)
       end
-        
+
+      if empty_form(datum, data_attributes)
+        datum.missing = true
+      end
+      
       # make sure missing ==> no data stored
       if datum.missing
         datum.numeric = nil
@@ -183,5 +188,39 @@ class Event < ActiveRecord::Base
   
   def save_data
     self.data.each {|d| d.save}
+  end
+  
+  # check if datum has no actual data
+  def empty_form(datum, atts)
+    empty = true
+    
+    # check numeric
+    if not datum.numeric.nil?
+      if not datum.numeric.empty?
+        empty = false
+      end
+    end
+    
+    # check char
+    if not datum.char.nil?
+      if not datum.char.empty?
+        empty = false 
+      end
+    end
+      
+    # check timestamp for time fields (1i to 3i are default values)
+    if not atts["timepoint(4i)"].nil?
+      if not atts["timepoint(4i)"].empty?
+        empty = false
+      end
+    end
+    
+    # check timestamp for date fields (no 4i and 5i fields) 
+    if not atts["timepoint(1i)"].nil? && atts["timepoint(4i)"].nil?
+      if not atts["timepoint(1i)"].empty?
+        empty = false
+      end
+    end
+    return empty
   end
 end
