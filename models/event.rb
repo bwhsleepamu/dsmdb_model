@@ -36,7 +36,7 @@ class Event < ActiveRecord::Base
     event = Event.new({:name => "demographics"})
     event.subject = subject
     event.add_demographic_tags
-    event.add_data_by_event_type
+    event.add_data_by_event_type(true)
     event.realtime = Time.now()
     event.source = Source.new({:user => Authorization.current_user.id, :source_type => "merged", 
                         :reference => "Merged Forms page for subject #{subject.subject_id}"
@@ -196,9 +196,7 @@ class Event < ActiveRecord::Base
     
     # check numeric
     if not datum.numeric.nil?
-      if not datum.numeric.empty?
-        empty = false
-      end
+      empty = false
     end
     
     # check char
