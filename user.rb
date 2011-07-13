@@ -51,7 +51,14 @@ class User < ActiveRecord::Base
       self.first_name = omniauth['user_info']['first_name'] if first_name.blank?
       self.last_name = omniauth['user_info']['last_name'] if last_name.blank?
     end
-    authentications.build(:provider => omniauth['provider'], :uid => omniauth['uid'])
+    CUSTOM_LOGGER.info omniauth.to_yaml
+    CUSTOM_LOGGER.info "provider: #{omniauth['provider']} uid: #{omniauth['uid']}"
+    
+    # create authentication
+    auth = authentications.build()
+    auth.provider = omniauth['provider']
+    auth.uid = omniauth['uid']
+    auth.save
   end
   
   def password_required?
