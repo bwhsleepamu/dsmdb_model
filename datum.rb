@@ -48,17 +48,25 @@ class Datum < ActiveRecord::Base
   def to_formatted_string
     # special format needs first
     case title
-      when "date of birth"
+      when "date of birth", "admit date"
         timepoint.strftime('%x')
       when "gender", "ethnic category"
         char.tr('_', ' ')
-      when "weight", "height", "naps per week", "owl lark score", "blood pressure diastolic", "blood pressure systolic", "heart rate"
+      when "weight", "height", "naps per week", "owl lark score", "blood pressure diastolic", "blood pressure systolic", "heart rate", "suite number"
         number_to_human(numeric)
       when "race"
         r = YAML::load(char)
         r.join(", ")
       else
-        timepoint.strftime('%X')   
+        if !numeric.nil?
+          numeric
+        elsif !char.nil?
+          char
+        elsif !timepoint.nil?
+          timepoint.strftime('%X')           
+        else
+          "N/A - Data Missing"
+        end
     end
   end
 end
