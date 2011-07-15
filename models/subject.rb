@@ -17,7 +17,12 @@ class Subject < ActiveRecord::Base
   after_update :save_irbs
   before_destroy :delete_irb_associations
 
-
+  
+  # Getters
+  def demographics
+     events.where(:name => "demographics").first
+  end
+  
   # Setters
   def new_irb_attributes=(irb_attributes)
     # Either find existing Irb object or create new one, then add to study

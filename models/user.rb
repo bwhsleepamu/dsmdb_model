@@ -17,7 +17,7 @@ class User < ActiveRecord::Base
   scope :find_by_full_name, lambda {|name|
     name = '%'+name+'%'
     where("lower(first_name) like lower(?) or lower(last_name) like lower(?)", name, name)
-  }
+  } 
   
   # Callbacks
   before_destroy :delete_role_associations

@@ -70,6 +70,8 @@ class Event < ActiveRecord::Base
     # each event has data titles associated with it
     # missing tag allows associated data to set to missing as default, until set with an actual value and changed otherwise
     
+    
+    
     case name
       when "demographics"
         titles = ["admit date", "suite number", "date of birth", "gender", "ethnic category", "race" ]
