@@ -20,9 +20,9 @@ class Study < ActiveRecord::Base
                         inner join subjects on subjects.study_id = studies.study_id
                         inner join events on events.subject_id = subjects.subject_id
                         inner join data on data.event_id = events.event_id
-                      where events.name = ? and data.title = ?
+                      where events.name = ? and data.title = ? and studies.study_id = ?
                       order by timepoint asc                                          
-                     ", event_name, data_title]
+                     ", event_name, data_title, study_id]
     first_admit_date.first.value
                      
   end
