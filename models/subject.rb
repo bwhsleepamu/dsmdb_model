@@ -1,7 +1,7 @@
 class Subject < ActiveRecord::Base
   set_primary_key self.name.downcase+'_id'
   set_sequence_name 'id_seq'
-  attr_accessible :subject_code, :study_id, :admit_date, :notes, :new_irb_attributes, :deleted_irb_ids, :pl_id
+  attr_accessible :subject_code, :study_id, :notes, :new_irb_attributes, :deleted_irb_ids, :pl_id
   
   validates :subject_code, :presence => true, :uniqueness => true
   
@@ -13,7 +13,6 @@ class Subject < ActiveRecord::Base
   
   
   # Callbacks
-  before_create :dothis
   after_update :save_irbs
   before_destroy :delete_irb_associations
 
@@ -22,7 +21,27 @@ class Subject < ActiveRecord::Base
   def demographics
      events.where(:name => "demographics").first
   end
-  
+
+  # computed information:
+  def age
+    if demographics
+      admit_date = demographics.data.find_by_title("admit date").timepoint
+      dob = demographics.data.find_by_title("date of birth").timepoint
+
+      age = admit_date.year - dob.year
+
+      # if admit date is before birthday, take one year away
+      if admit_date.month < dob.month
+        age -= 1
+      elsif admit_date.month == dob.month
+        if admit_date.day < dob.day
+          age -= 1
+        end
+      end
+    end
+    age
+  end
+
   # Setters
   def new_irb_attributes=(irb_attributes)
     # Either find existing Irb object or create new one, then add to study
@@ -51,10 +70,5 @@ class Subject < ActiveRecord::Base
   # this enforces oracle foreign key constraints
   def delete_irb_associations
     self.irbs.delete(self.irbs)
-  end
-  
-  
-  def dothis
-    CUSTOM_LOGGER.info "!!!!!!!!!!!!!!!! ITHISKLDFJ DOING IT!!!"
   end
 end
