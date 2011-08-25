@@ -24,8 +24,8 @@ class Subject < ActiveRecord::Base
 
   # computed information:
   def age
-    admit_date = demographics.data.find_by_title("admit date").timepoint
-    dob = demographics.data.find_by_title("date of birth").timepoint
+    admit_date = demographics.data.find_by_title("admit date").time_data
+    dob = demographics.data.find_by_title("date of birth").time_data
 
     if demographics && dob && admit_date
 

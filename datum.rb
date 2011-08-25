@@ -3,8 +3,8 @@ class Datum < ActiveRecord::Base
 
   set_primary_key self.name.downcase+'_id'
   set_sequence_name 'id_seq'
-  attr_accessible :event_id, :unit_id, :title, :numeric, :char, :description, :timepoint, :unit_name, :source_id, :missing
-  
+  attr_accessible :event_id, :unit_id, :title, :num_data, :text_data, :description, :time_data, :unit_name, :source_id, :missing
+
   belongs_to :data_unit, :foreign_key => "unit_id"
   belongs_to :event
   belongs_to :source
@@ -14,12 +14,15 @@ class Datum < ActiveRecord::Base
   before_save :assign_unit
   
   accepts_nested_attributes_for :source
-    
+  def self.titles
+    self.select("unique title").order("title asc").map(&:title)
+  end
+
   def value
     
     # make sure one and only one field has a value
-    if (numeric.nil? && char.nil? && timepoint.nil?) and not missing
-      CUSTOM_LOGGER.error "NO DATA VALUE! #{datum_id} #{timepoint.nil?} #{missing}"     
+    if (num_data.nil? && text_data.nil? && time_data.nil?) and not missing
+      CUSTOM_LOGGER.error "NO DATA VALUE! #{datum_id} #{time_data.nil?} #{missing}"
       raise StandardError, "No data value in datum object and no missing data flag"
     end
     
@@ -27,16 +30,10 @@ class Datum < ActiveRecord::Base
       "N/A - Data Missing"
     else
       to_formatted_string
-#    elsif !numeric.nil?
-#      numeric
-#    elsif !char.nil?
-#      char.tr('_', ' ')
-#    else
-#      timepoint
     end
   end
-  
-  private 
+
+  private
   
   def assign_unit
     if self.unit_name
@@ -44,26 +41,26 @@ class Datum < ActiveRecord::Base
       self.data_unit = u
     end
   end
-  
+
   def to_formatted_string
     # special format needs first
     case title
       when "date of birth", "admit date"
-        timepoint.strftime('%x')
+        time_data.strftime('%x')
       when "gender", "ethnic category"
-        char.tr('_', ' ')
+        text_data.tr('_', ' ')
       when "weight", "height", "naps per week", "owl lark score", "blood pressure diastolic", "blood pressure systolic", "heart rate", "suite number"
-        number_to_human(numeric)
+        number_to_human(num_data)
       when "race"
-        r = YAML::load(char)
+        r = YAML::load(text_data)
         r.join(", ")
       else
-        if !numeric.nil?
-          numeric
-        elsif !char.nil?
-          char
-        elsif !timepoint.nil?
-          timepoint.strftime('%X')           
+        if !num_data.nil?
+          num_data
+        elsif !text_data.nil?
+          text_data
+        elsif !time_data.nil?
+          time_data.strftime('%X')
         else
           "N/A - Data Missing"
         end

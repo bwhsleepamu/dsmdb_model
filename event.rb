@@ -98,7 +98,7 @@ class Event < ActiveRecord::Base
       when "owl lark form"
         titles = ["owl lark score"]
       when "other sources"
-        titles = ["date of birth", "gender", "ethnic category", "race", "height", "weight"]
+        titles = ["date of birth", "age", "gender", "ethnic category", "race", "height", "weight"]
         titles += ["usual school or work bedtime (lower bound)", "usual school or work bedtime (upper bound)"]
         titles += ["usual day off or weekend bedtime (lower bound)", "usual day off or weekend bedtime (upper bound)"]
         titles += ["usual school or work waketime (lower bound)", "usual school or work waketime (upper bound)"]
@@ -133,9 +133,9 @@ class Event < ActiveRecord::Base
       
       # make sure missing ==> no data stored
       if datum.missing
-        datum.numeric = nil
-        datum.char = nil
-        datum.timepoint = nil
+        datum.num_data = nil
+        datum.text_data = nil
+        datum.time_data = nil
         datum.data_unit = nil
         datum.save
       end
@@ -170,20 +170,20 @@ class Event < ActiveRecord::Base
   end
   
   private
-  
+
   # convert to standard units - modifies value
   def convert_units!(value)
     # for now: lb ==> kg and ft/in ==> cm
     case value[:unit_name]
       when "ft"
-        u = Unit(value[:numeric])
+        u = Unit(value[:num_data])
         u >>= "cm"
-        value[:numeric] = u.abs
+        value[:num_data] = u.abs
         value[:unit_name] = "cm"
       when "lb"
-        u = Unit(value[:numeric] + " lb")
+        u = Unit(value[:num_data] + " lb")
         u >>= "kg"
-        value[:numeric] = u.abs
+        value[:num_data] = u.abs
         value[:unit_name] = "kg"
     end
   end
@@ -196,31 +196,31 @@ class Event < ActiveRecord::Base
   def empty_form(datum, atts)
     empty = true
     
-    # check numeric
-    if not datum.numeric.nil?
+    # check num_data
+    if not datum.num_data.nil?
       empty = false
     end
     
-    # check char
-    if not datum.char.nil?
-      if not datum.char.empty?
+    # check text_data
+    if not datum.text_data.nil?
+      if not datum.text_data.empty?
         empty = false 
       end
     end
       
     # check timestamp for time fields (1i to 3i are default values)
-    if not atts["timepoint(4i)"].nil?
-      if not atts["timepoint(4i)"].empty?
+    if not atts["time_data(4i)"].nil?
+      if not atts["time_data(4i)"].empty?
         empty = false
       end
     end
     
     # check timestamp for date fields (no 4i and 5i fields) 
-    if not atts["timepoint(1i)"].nil? && atts["timepoint(4i)"].nil?
-      if not atts["timepoint(1i)"].empty?
+    if not atts["time_data(1i)"].nil? && atts["time_data(4i)"].nil?
+      if not atts["time_data(1i)"].empty?
         empty = false
       end
     end
-    return empty
+    empty
   end
 end
