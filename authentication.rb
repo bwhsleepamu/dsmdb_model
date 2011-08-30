@@ -1,4 +1,4 @@
-class Authentication < ActiveRecord::Base
+  class Authentication < ActiveRecord::Base
   belongs_to :user
   
   attr_accessible

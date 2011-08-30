@@ -1,4 +1,4 @@
-class AuditObserver < ActiveRecord::Observer
+  class AuditObserver < ActiveRecord::Observer
   observe :datum, :event, :event_tag, :study, :subject, :personnel, :irb
 
   def after_destroy(record)
