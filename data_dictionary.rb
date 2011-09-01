@@ -3,6 +3,7 @@ class DataDictionary < ActiveRecord::Base
   set_table_name "data_dictionary"
   set_primary_key "record_id"
   set_sequence_name 'id_seq'
+  attr_accessible :title, :data_type, :data_subtype, :description, :valid_range, :default_value, :length, :format_string, :unit_id, :allowed_values
 
   # Associations
   belongs_to :data_unit, :foreign_key => "unit_id"
@@ -30,6 +31,42 @@ class DataDictionary < ActiveRecord::Base
   def self.subtypes(type)
     data_types[type.to_sym].keys
   end
+
+    # process attributes from the complex form
+  def self.process_attributes(params)
+    if params[:default_value].key?(:exclude)
+      params.delete[:default_value]
+    else
+      params[:default_value] = params[:default_value][:value]
+    end
+  end
+
+  # Instance Methods
+  def allowed_values
+    self[:allowed_values].nil? ? nil : YAML::load(self[:allowed_values])
+  end
+
+  def allowed_values=(val)
+    self[:allowed_values] = val.to_yaml unless val.nil?
+  end
+
+  def length
+    self[:length].nil? ? nil : YAML::load(self[:length])
+
+  end
+
+  def length=(val)
+    self[:length] = val.to_yaml unless val.nil?
+  end
+
+  def valid_range
+    self[:valid_range].nil? ? nil : YAML::load(self[:valid_range])
+  end
+
+  def valid_range=(val)
+    self[:valid_range] = val.to_yaml unless val.nil?
+  end
+
 
 
 end
