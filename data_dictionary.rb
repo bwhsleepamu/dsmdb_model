@@ -40,10 +40,6 @@ class DataDictionary < ActiveRecord::Base
         params.delete(field)
       else
         case field.to_sym
-          when :valid_range
-            params[field] = "howdy"# "[#{params[field][:lower]}, #{params[field][:upper]}]"
-          when :length
-            params[field] = "[,]"#"[#{params[field][:min]}, #{params[field][:max]}]"
           when :default_value
             params[field] = params[field][:value]
         end
@@ -66,18 +62,29 @@ class DataDictionary < ActiveRecord::Base
   end
 
   def length
-    self[:length]
+    return {:min => nil, :max => nil} if self[:length].nil?
+
+    # return hash with min, max keys
+    vals = self[:length].scan(/\d+/)
+    { :min => vals[0].to_i, :max => vals[1].to_i }
   end
 
   def length=(val)
+    # make sure val is a hash with min, max keys
     self[:length] = val
   end
 
   def valid_range
-    self[:valid_range]
+    # return hash with lower, upper keys
+    return {:lower => nil, :upper => nil} if self[:valid_range].nil?
+
+    vals = self[:valid_range].scan(/[\s\d\\\/:\.]+/)
+    vals.map! { |x| x.strip }
+    {:lower => vals[0], :upper => vals[1]}
   end
 
   def valid_range=(val)
-    self[:valid_range] = val
+    # make sure value is a hash with lower, upper keys
+    self[:valid_range] = "[#{val[:lower]}, #{val[:upper]}]"
   end
 end
