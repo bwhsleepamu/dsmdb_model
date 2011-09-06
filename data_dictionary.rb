@@ -34,11 +34,26 @@ class DataDictionary < ActiveRecord::Base
 
     # process attributes from the complex form
   def self.process_attributes(params)
-    if params[:default_value].key?(:exclude)
-      params.delete[:default_value]
-    else
-      params[:default_value] = params[:default_value][:value]
+    keys = params.keys.map { |x| x.to_sym}
+    ([:default_value, :valid_range, :allowed_values, :length] & keys).each do |field|
+      if params[field].key?(:exclude)
+        params.delete(field)
+      else
+        case field.to_sym
+          when :valid_range
+            params[field] = "howdy"# "[#{params[field][:lower]}, #{params[field][:upper]}]"
+          when :length
+            params[field] = "[,]"#"[#{params[field][:min]}, #{params[field][:max]}]"
+          when :default_value
+            params[field] = params[field][:value]
+        end
+        CUSTOM_LOGGER.info params[field].class
+      end
+
+
     end
+
+    params
   end
 
   # Instance Methods
@@ -51,22 +66,18 @@ class DataDictionary < ActiveRecord::Base
   end
 
   def length
-    self[:length].nil? ? nil : YAML::load(self[:length])
-
+    self[:length]
   end
 
   def length=(val)
-    self[:length] = val.to_yaml unless val.nil?
+    self[:length] = val
   end
 
   def valid_range
-    self[:valid_range].nil? ? nil : YAML::load(self[:valid_range])
+    self[:valid_range]
   end
 
   def valid_range=(val)
-    self[:valid_range] = val.to_yaml unless val.nil?
+    self[:valid_range] = val
   end
-
-
-
 end
