@@ -54,7 +54,7 @@ class DataDictionary < ActiveRecord::Base
 
   # Instance Methods
   def allowed_values
-    self[:allowed_values].nil? ? nil : YAML::load(self[:allowed_values])
+    self[:allowed_values].nil? ? nil : YAML::load(self[:allowed_values])["values"]
   end
 
   def allowed_values=(val)
