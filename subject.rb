@@ -19,30 +19,31 @@ class Subject < ActiveRecord::Base
 
   # Getters
   def demographics
-    events.where(:name => "demographics").first
+    #events.where(:name => "demographics").first
+    Event.where({:name => "demographics", :subject_id => subject_id}).first
   end
 
   # computed information:
   def age
-    admit_date = demographics.data.find_by_title("admit date").time_data
-    dob = demographics.data.find_by_title("date of birth").time_data
+    d = demographics
+    if d
+      admit_date = d.data.find_by_title("admit date").time_data
+      dob = d.data.find_by_title("date of birth").time_data
+      if dob && admit_date
+        age = admit_date.year - dob.year
 
-    if demographics && dob && admit_date
-
-      age = admit_date.year - dob.year
-
-      # if admit date is before birthday, take one year away
-      if admit_date.month < dob.month
-        age -= 1
-      elsif admit_date.month == dob.month
-        if admit_date.day < dob.day
+        # if admit date is before birthday, take one year away
+        if admit_date.month < dob.month
           age -= 1
+        elsif admit_date.month == dob.month
+          if admit_date.day < dob.day
+            age -= 1
+          end
         end
+        age
       end
-      age
-    else
-      nil
     end
+    "missing"
   end
 
   # Setters

@@ -3,11 +3,12 @@ class Datum < ActiveRecord::Base
 
   set_primary_key self.name.downcase+'_id'
   set_sequence_name 'id_seq'
-  attr_accessible :event_id, :unit_id, :title, :num_data, :text_data, :description, :time_data, :unit_name, :source_id, :missing
+  attr_accessible :event_id, :unit_id, :documentation_id,  :title, :num_data, :text_data, :description, :time_data, :unit_name, :source_id, :missing
 
   belongs_to :data_unit, :foreign_key => "unit_id"
   belongs_to :event
   belongs_to :source
+  belongs_to :documentation
   
   attr_accessor :unit_name
   
