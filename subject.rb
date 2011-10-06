@@ -27,8 +27,8 @@ class Subject < ActiveRecord::Base
   def age
     d = demographics
     if d
-      admit_date = d.data.find_by_title("admit date").time_data
-      dob = d.data.find_by_title("date of birth").time_data
+      admit_date = d.data.find_by_title("admit_date").time_data
+      dob = d.data.find_by_title("date_of_birth").time_data
       if dob && admit_date
         age = admit_date.year - dob.year
 
