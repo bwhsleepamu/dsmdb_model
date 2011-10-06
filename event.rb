@@ -97,11 +97,13 @@ class Event < ActiveRecord::Base
     # missing tag allows associated data to set to missing as default, until set with an actual value and changed otherwise
 
 
+    ### DEPRECATED!!!! UPDATE WITH DATA and EVENT DICTIONARY USE ###
+    return nil
 
     case name
       when "demographics"
-        titles = ["admit date", "suite number", "date of birth", "gender", "ethnic category", "race" ]
-        titles += ["height", "weight", "blood pressure systolic", "blood pressure diastolic", "heart rate"]
+        titles = ["admit_date", "suite_number", "date_of_birth", "gender", "ethnic_category", "race" ]
+        titles += ["height", "weight", "blood_pressure_systolic", "blood_pressure_diastolic", "heart rate"]
         titles += ["usual school or work bedtime (lower bound)", "usual school or work bedtime (upper bound)"]
         titles += ["usual day off or weekend bedtime (lower bound)", "usual day off or weekend bedtime (upper bound)"]
         titles += ["usual school or work waketime (lower bound)", "usual school or work waketime (upper bound)"]
