@@ -39,7 +39,7 @@ class User < ActiveRecord::Base
   def role_tokens=(ids)
     self.role_ids = ids.split(",")
   end
-  
+
   # Overriding Devise built-in active? method
   def active_for_authentication?
     super and self.active and not self.deleted?

@@ -27,12 +27,8 @@ class Subject < ActiveRecord::Base
   def age
     d = demographics
     if d
-      admit_date = d.data.find_by_title("admit_date")
-      dob = d.data.find_by_title("date_of_birth")
-
-      # if data objects exist, get their value
-      admit_date = admit_date.value if admit_date
-      dob = dob.value if dob
+      admit_date = d.data.find_by_title("admit_date").value
+      dob = d.data.find_by_title("date_of_birth").value
 
       if dob && admit_date
         age = admit_date.year - dob.year
@@ -45,10 +41,9 @@ class Subject < ActiveRecord::Base
             age -= 1
           end
         end
-        age
       end
     end
-    "missing"
+    age || 'missing'
   end
 
   # Setters

@@ -68,13 +68,14 @@ class Datum < ActiveRecord::Base
   end
 
   def to_formatted_string
+    #### DEPRECIATED!!!! USE DATA DICTIONARY!!!!! ######
     # special format needs first
     case title
-      when "date of birth", "admit date"
+      when "date_of_birth", "admit_date"
         time_data.strftime('%x')
-      when "gender", "ethnic category"
+      when "gender", "ethnic_category"
         text_data.tr('_', ' ')
-      when "weight", "height", "naps per week", "owl lark score", "blood pressure diastolic", "blood pressure systolic", "heart rate", "suite number"
+      when "weight", "height", "naps_per_week", "owl_lark_score", "blood_pressure_diastolic", "blood_pressure_systolic", "heart_rate", "suite_number"
         number_to_human(num_data)
       when "race"
         r = YAML::load(text_data)
