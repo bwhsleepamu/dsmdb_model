@@ -30,14 +30,18 @@ class Subject < ActiveRecord::Base
       admit_date = d.data.find_by_title("admit_date")
       dob = d.data.find_by_title("date_of_birth")
 
+      # if data objects exist, get their value
+      admit_date = admit_date.value if admit_date
+      dob = dob.value if dob
+
       if dob && admit_date
-        age = admit_date.time_data.year - dob.time_data.year
+        age = admit_date.year - dob.year
 
         # if admit date is before birthday, take one year away
-        if admit_date.time_data.month < dob.time_data.month
+        if admit_date.month < dob.month
           age -= 1
-        elsif admit_date.time_data.month == dob.time_data.month
-          if admit_date.time_data.day < dob.time_data.day
+        elsif admit_date.month == dob.month
+          if admit_date.day < dob.day
             age -= 1
           end
         end

@@ -23,7 +23,27 @@ class Datum < ActiveRecord::Base
     self.select("unique title").order("title asc").map(&:title)
   end
 
+  # Return value of available field
+  # in future, refer to DATA DICTIONARY!!!
   def value
+    # make sure one and only one field has a value
+    if (num_data.nil? && text_data.nil? && time_data.nil?) and not missing
+      CUSTOM_LOGGER.error "NO DATA VALUE! #{datum_id} #{time_data.nil?} #{missing}"
+      raise StandardError, "No data value in datum object and no missing data flag"
+    end
+
+    if missing
+      nil
+    elsif not num_data.nil?
+      num_data
+    elsif not text_data.nil?
+      text_data
+    else
+      time_data
+    end
+  end
+
+  def value_to_string
     
     # make sure one and only one field has a value
     if (num_data.nil? && text_data.nil? && time_data.nil?) and not missing
