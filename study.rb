@@ -23,7 +23,7 @@ class Study < ActiveRecord::Base
                       where events.name = ? and data.title = ? and studies.study_id = ?
                       order by time_data asc
                      ", event_name, data_title, study_id]
-    first_admit_date.first.value
+    first_admit_date.first.value unless first_admit_date.length == 0
                      
   end
   

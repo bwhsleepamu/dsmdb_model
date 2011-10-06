@@ -14,7 +14,11 @@ class Datum < ActiveRecord::Base
   
   before_save :assign_unit
   
-  accepts_nested_attributes_for :source
+#  accepts_nested_attributes_for :source
+  scope :published_since, lambda { |ago|
+    published.where("posts.published_at >= ?", ago)
+  }
+
   def self.titles
     self.select("unique title").order("title asc").map(&:title)
   end
