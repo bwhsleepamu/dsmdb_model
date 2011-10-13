@@ -11,6 +11,11 @@ class DataDictionary < ActiveRecord::Base
   has_many :event_dictionary, :through => :event_dictionary_data_fields
 
   # Validations
+  validates_presence_of :title, :data_type, :data_subtype, :description
+  validates :title, :uniqueness => true,
+                    :format =>  { :with => /\A\w+\z/, :message => "Only letters, numbers, or underscores allowed"},
+                    :length => { :in => 2..255 }
+  validates :description, :length => { :minimum => 5 }
 
   # Class Methods
   def self.data_types
