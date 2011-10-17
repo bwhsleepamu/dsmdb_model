@@ -23,6 +23,10 @@ class Datum < ActiveRecord::Base
     self.select("unique title").order("title asc").map(&:title)
   end
 
+  def self.undefined_titles(title_part)
+    self.find_by_sql("select title from data where title like '%#{title_part}%' group by title minus select title from data_dictionary group by title").map(&:title)
+  end
+
   # Return value of available field
   # in future, refer to DATA DICTIONARY!!!
   def value
