@@ -15,7 +15,7 @@ class Event < ActiveRecord::Base
   after_save :save_data
 
   # Sometimes labtime is stored or needed in hour.fractionofhour format
-  # These functions allow conversion to and from this format
+    # These functions allow conversion to and from this format
   def labtime_decimal=(val)
     # hour is always to left of decimal point
     hour = val.truncate
@@ -35,6 +35,14 @@ class Event < ActiveRecord::Base
     (self[:labtime_hr] + (self[:labtime_min] / 60) + (self[:labtime_sec] / 3600)).to_f
   end
 
+  def add_tags(tag_list)
+    tag_list.each do |tag|
+      event_tags << EventTag.find_or_create_by_tag_name(tag)
+    end
+  end
+
+
+  ## These are weirdly specific things
   # add demographic tags
   def add_demographic_tags
     add_tags(["demographic", "manual", "merged"])
@@ -44,17 +52,12 @@ class Event < ActiveRecord::Base
   def add_form_tags
     add_tags(["demographic", "manual", "form"])
   end
-
-  def add_tags(tag_list)
-    tag_list.each do |tag|
-      event_tags << EventTag.find_or_create_by_tag_name(tag)
-    end
-  end
+  ###
 
 
 
 
-
+  ##### OUTDATED!!! #### WHERE TO I STORE THIS STUFF?
   ## Creators for different types of events ##
   # return an event object for holding subject demographic data
   def self.new_subject_demographics(subject)
