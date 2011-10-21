@@ -8,6 +8,7 @@ class Datum < ActiveRecord::Base
   belongs_to :data_unit, :foreign_key => "unit_id"
   belongs_to :event
   belongs_to :source
+  belongs_to :quality_flag
   belongs_to :documentation
   
   attr_accessor :unit_name
@@ -28,7 +29,7 @@ class Datum < ActiveRecord::Base
   end
 
   # Return value of available field
-  # in future, refer to DATA DICTIONARY!!!
+  # in future, refer to DATA DICTIONARY!!!  if no entry, then this could be fallback...
   def value
     # make sure one and only one field has a value
     if (num_data.nil? && text_data.nil? && time_data.nil?) and not missing
@@ -47,6 +48,7 @@ class Datum < ActiveRecord::Base
     end
   end
 
+  # THIS FUNCTION IS A PRESENTER-TYPE THING
   def value_to_string
     
     # make sure one and only one field has a value
@@ -63,7 +65,8 @@ class Datum < ActiveRecord::Base
   end
 
   private
-  
+
+  # UNITS NO LONGER STORED IN DATA TABLE
   def assign_unit
     if self.unit_name
       u = DataUnit.find_or_create_by_name(self.unit_name)

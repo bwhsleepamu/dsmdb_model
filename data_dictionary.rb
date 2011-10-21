@@ -37,18 +37,20 @@ class DataDictionary < ActiveRecord::Base
     data_types[type.to_sym].keys
   end
 
-    # process attributes from the complex form
+  # process attributes from the complex form
   def self.process_attributes(params)
     keys = params.keys.map { |x| x.to_sym}
-    ([:default_value, :valid_range, :allowed_values, :length] & keys).each do |field|
+    CUSTOM_LOGGER.info params.to_yaml
+    ([:default_value, :valid_range, :length] & keys).each do |field|
+      CUSTOM_LOGGER.info "Here's the field: #{field}"
       if params[field].key?(:exclude)
-        params.delete(field)
+        CUSTOM_LOGGER.info "Excluded: #{field}"
+        params[:field] = nil
       else
         case field.to_sym
           when :default_value
             params[field] = params[field][:value]
         end
-        CUSTOM_LOGGER.info params[field].class
       end
 
 
@@ -59,11 +61,17 @@ class DataDictionary < ActiveRecord::Base
 
   # Instance Methods
   def allowed_values
-    self[:allowed_values].nil? ? nil : YAML::load(self[:allowed_values])["values"]
+    #CUSTOM_LOGGER.info "WHAT COMES OUT: #{self[:allowed_values]}"
+    self[:allowed_values].nil? ? nil : YAML::load(self[:allowed_values])
   end
 
   def allowed_values=(val)
-    self[:allowed_values] = val.to_yaml unless val.nil?
+    #CUSTOM_LOGGER.info "WHAT GOES IN??? #{val[:values]} #{val[:exclude]}"
+    if val[:exclude] || val[:values].nil?
+      self[:allowed_values] = nil
+    else
+      self[:allowed_values] = val[:values].to_yaml
+    end
   end
 
   def length
