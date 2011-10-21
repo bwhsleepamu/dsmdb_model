@@ -12,6 +12,7 @@ class EventDictionary < ActiveRecord::Base
 
   has_many :event_dictionary_data_fields, :foreign_key => "event_record_id"
   has_many :data_dictionary, :through => :event_dictionary_data_fields
+  has_and_belongs_to_many :event_tags, :join_table => "events_event_tags"
 
 
   def delete_data_fields
@@ -29,5 +30,12 @@ class EventDictionary < ActiveRecord::Base
 
 
   end
+
+  def add_tags(tag_list)
+    tag_list.each do |tag|
+      event_tags << EventTag.find_or_create_by_tag_name(tag)
+    end
+  end
+
 
 end

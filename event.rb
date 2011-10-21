@@ -7,7 +7,6 @@ class Event < ActiveRecord::Base
   belongs_to :source
   belongs_to :study
   belongs_to :subject
-  has_and_belongs_to_many :event_tags, :join_table => "events_event_tags"
   has_many :data
 
   accepts_nested_attributes_for :data
@@ -35,27 +34,6 @@ class Event < ActiveRecord::Base
     (self[:labtime_hr] + (self[:labtime_min] / 60) + (self[:labtime_sec] / 3600)).to_f
   end
 
-  def add_tags(tag_list)
-    tag_list.each do |tag|
-      event_tags << EventTag.find_or_create_by_tag_name(tag)
-    end
-  end
-
-
-  ## These are weirdly specific things
-  # add demographic tags
-  def add_demographic_tags
-    add_tags(["demographic", "manual", "merged"])
-  end
-
-  # add form tags
-  def add_form_tags
-    add_tags(["demographic", "manual", "form"])
-  end
-  ###
-
-
-
 
   ##### OUTDATED!!! #### WHERE TO I STORE THIS STUFF?
   ## Creators for different types of events ##
@@ -72,6 +50,7 @@ class Event < ActiveRecord::Base
     event
   end
 
+  # MAYBE PUT IN FORM CLASS? Still figure out how to deal with forms
   def self.new_form(form_name, subject_id, missing_tag)
     # maybe make this the accessor and creator?
 
@@ -140,6 +119,8 @@ class Event < ActiveRecord::Base
   end
 
 
+  # HOW GENERAL IS THIS?  NEEDS TO USE DATA DICTIONARY ETC.
+  # REFACTOR!!
   def add_update_data(params)
     # add or update applicable data fields to event
     params.each do |title, value|
@@ -203,6 +184,8 @@ class Event < ActiveRecord::Base
   private
 
   # convert to standard units - modifies value
+  # Specific - IS THIS THE RIGHT PLACE FOR IT?
+  # REFACTOR!
   def convert_units!(value)
     # for now: lb ==> kg and ft/in ==> cm
     case value[:unit_name]
@@ -224,6 +207,8 @@ class Event < ActiveRecord::Base
   end
 
   # check if datum has no actual data
+  #  WHERE IS THIS USED? WHAT DOES IT DO?
+  #  REFACTOR!!
   def empty_form(datum, atts)
     empty = true
 
