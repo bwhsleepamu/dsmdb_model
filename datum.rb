@@ -15,18 +15,28 @@ class Datum < ActiveRecord::Base
   
   before_save :assign_unit
   
-#  accepts_nested_attributes_for :source
+  #  accepts_nested_attributes_for :source
   scope :published_since, lambda { |ago|
     published.where("posts.published_at >= ?", ago)
   }
 
+  ##
+  # These functions display all unique titles in the data table
   def self.titles
     self.select("unique title").order("title asc").map(&:title)
   end
 
+  # This one displays the titles yet undefined in the data dictionary
   def self.undefined_titles(title_part)
     self.find_by_sql("select title from data where title like '%#{title_part}%' group by title minus select title from data_dictionary group by title").map(&:title)
   end
+
+  ##
+  # Returns dictionary record for this datum
+  def dictionary_record
+    DataDictionary.find_by_title(title)
+  end
+
 
   # Return value of available field
   # in future, refer to DATA DICTIONARY!!!  if no entry, then this could be fallback...

@@ -100,4 +100,13 @@ class DataDictionary < ActiveRecord::Base
     # make sure value is a hash with lower, upper keys
     self[:valid_range] = "[#{val[:lower]}, #{val[:upper]}]"
   end
+
+  # Dangerous??
+  def data_type
+    self[:data_type].to_sym
+  end
+
+  def data_subtype
+    self[:data_subtype].to_sym
+  end
 end
