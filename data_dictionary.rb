@@ -17,7 +17,11 @@ class DataDictionary < ActiveRecord::Base
                     :length => { :in => 2..255 }
   validates :description, :length => { :minimum => 5 }
 
+  ##
   # Class Methods
+  ##
+
+  # A list of hardcoded datatypes
   def self.data_types
     {
         :text_type => {:character => [:default_value, :valid_range, :allowed_values],
@@ -37,36 +41,22 @@ class DataDictionary < ActiveRecord::Base
     data_types[type.to_sym].keys
   end
 
-  # process attributes from the complex form
-  def self.process_attributes(params)
-    keys = params.keys.map { |x| x.to_sym}
-    CUSTOM_LOGGER.info params.to_yaml
-    ([:default_value, :valid_range, :length] & keys).each do |field|
-      CUSTOM_LOGGER.info "Here's the field: #{field}"
-      if params[field].key?(:exclude)
-        CUSTOM_LOGGER.info "Excluded: #{field}"
-        params[:field] = nil
-      else
-        case field.to_sym
-          when :default_value
-            params[field] = params[field][:value]
-        end
-      end
-
-
-    end
-
-    params
-  end
-
+  ##
   # Instance Methods
+  ##
+
+  ##
+  # Getters and setters for complex fields
+
+  # allowed values: saved as yaml list
   def allowed_values
-    #CUSTOM_LOGGER.info "WHAT COMES OUT: #{self[:allowed_values]}"
+    # loads list if not nil
     self[:allowed_values].nil? ? nil : YAML::load(self[:allowed_values])
   end
 
   def allowed_values=(val)
-    #CUSTOM_LOGGER.info "WHAT GOES IN??? #{val[:values]} #{val[:exclude]}"
+    # nil if not set
+    #ASSUMES val is a hash {:values => [-value array-], :exclude => 1or0}
     if val[:exclude] || val[:values].nil?
       self[:allowed_values] = nil
     else
@@ -78,13 +68,14 @@ class DataDictionary < ActiveRecord::Base
     return {:min => nil, :max => nil} if self[:length].nil?
 
     # return hash with min, max keys
-    vals = self[:length].scan(/\d+/)
+    vals = self[:length].scan(/[\s\d\\\/:\.]+/)
     { :min => vals[0].to_i, :max => vals[1].to_i }
   end
 
   def length=(val)
     # make sure val is a hash with min, max keys
-    self[:length] = val
+    # also allows an "exclude" key
+    self[:length] = val[:exclude] ? nil : "[#{val[:min]}, #{val[:max]}]"
   end
 
   def valid_range
@@ -93,20 +84,52 @@ class DataDictionary < ActiveRecord::Base
 
     vals = self[:valid_range].scan(/[\s\d\\\/:\.]+/)
     vals.map! { |x| x.strip }
-    {:lower => vals[0], :upper => vals[1]}
+    {:lower => time_read_filter(vals[0]), :upper => time_read_filter(vals[1])}
   end
 
   def valid_range=(val)
     # make sure value is a hash with lower, upper keys
-    self[:valid_range] = "[#{val[:lower]}, #{val[:upper]}]"
+    #CUSTOM_LOGGER.info "current type: #{self[:data_type]}"
+    self[:valid_range] = val[:exclude] ? nil : "[#{time_input_filter(val[:lower])}, #{time_input_filter(val[:upper])}]"
   end
 
+  def default_value
+    time_read_filter(self[:default_value])
+  end
+
+  def default_value=(val)
+    # assumes hash w/ value key and possible exclude key
+    #CUSTOM_LOGGER.info "current type: #{self[:data_type]}"
+    self[:default_value] = val[:exclude] ? nil : time_input_filter(val[:value])
+  end
+
+  ## make sure data_type and subtype display as symbols to allow comparisons
   # Dangerous??
   def data_type
-    self[:data_type].to_sym
+   self[:data_type].nil? ? nil : self[:data_type].to_sym
   end
 
   def data_subtype
-    self[:data_subtype].to_sym
+    self[:data_subtype].nil? ? nil : self[:data_subtype].to_sym
   end
+
+
+private
+  def time_input_filter(val)
+    #CUSTOM_LOGGER.info "input, current type: #{data_type} \n #{val}"
+
+    if data_type == :time_type
+      Time.utc(val[:year], val[:month], val[:day], val[:hour], val[:minute], val[:second]).to_f
+    else
+      val
+    end
+  end
+
+  def time_read_filter(val)
+    #CUSTOM_LOGGER.info "read, current type: #{data_type} \n#{val}"
+    if data_type == :time_type
+      Time.zone.at(val.to_f)
+    end
+  end
+
 end
