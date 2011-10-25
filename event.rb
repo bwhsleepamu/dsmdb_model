@@ -38,6 +38,9 @@ class Event < ActiveRecord::Base
     (self[:labtime_hr] + (self[:labtime_min] / 60) + (self[:labtime_sec] / 3600)).to_f
   end
 
+  def dictionary_record
+    EventDictionary.find_by_name(self[:name])
+  end
 
   ##### OUTDATED!!! #### WHERE TO I STORE THIS STUFF?
   ## Creators for different types of events ##
