@@ -41,6 +41,10 @@ class DataDictionary < ActiveRecord::Base
     data_types[type.to_sym].keys
   end
 
+  def self.allowed_field?(type, subtype, data_type)
+    self.data_types[type][subtype].find(data_type)
+  end
+
   ##
   # Instance Methods
   ##

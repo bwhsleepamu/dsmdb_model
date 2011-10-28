@@ -22,6 +22,8 @@ class Source < ActiveRecord::Base
   # This function is ideal for computer file sources
   # WARNING! Function returns first source that matches given parameters - if parameters are not strict
   # enough, you might be left with an unsuitable source.
+
+  # Refactor into scope!!
   def self.find_or_create(params)
     s = Source.where(params)
 
