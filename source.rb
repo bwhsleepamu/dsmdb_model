@@ -34,5 +34,4 @@ class Source < ActiveRecord::Base
 
     s.nil? ? Source.create(params) : s
   end
-
 end
