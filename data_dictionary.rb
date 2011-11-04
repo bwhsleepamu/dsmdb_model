@@ -61,6 +61,7 @@ class DataDictionary < ActiveRecord::Base
   def allowed_values=(val)
     # nil if not set
     #ASSUMES val is a hash {:values => [-value array-], :exclude => 1or0}
+    val[:values].delete("")
     if val[:exclude] || val[:values].nil?
       self[:allowed_values] = nil
     else
