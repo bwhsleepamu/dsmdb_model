@@ -5,20 +5,43 @@ class Datum < ActiveRecord::Base
   set_sequence_name 'id_seq'
   attr_accessible :event_id, :unit_id, :documentation_id,  :title, :num_data, :text_data, :description, :time_data, :unit_name, :source_id, :missing
 
-  belongs_to :data_unit, :foreign_key => "unit_id"
   belongs_to :event
   belongs_to :source
   belongs_to :quality_flag
   belongs_to :documentation
-  
+
   attr_accessor :unit_name
-  
-  before_save :assign_unit
-  
-  #  accepts_nested_attributes_for :source
-  scope :published_since, lambda { |ago|
-    published.where("posts.published_at >= ?", ago)
-  }
+
+  ##
+  # Saving A Datum
+
+=begin
+ So, data can have a
+  - source
+  - documentation
+  - quality flag (later)
+  - event!!
+
+  ATOMIC! <- focus
+    - best way to ensure this is to SAVE together, right?
+    - might be some built-in way of grouping DB actions together in atomic way (remember something of that sort - idk if applies to active record)
+    - also might be useful to see if, when you save a parent model, all unsaved children are automatically saved (if event has unsaved data, does creating+saving event save data in its arrays)
+  VALIDATION! <- after it works w/o it
+
+  we need to basically override the initialize and update functions, right? ya!
+
+  how does creating new differ from updating old??
+
+  we create/select new data object (for a given event...no orphaned data!! what if the event is not saved?? ahh!)
+  we create/select:
+    - for each doc/source
+      - if id is there, select old and update w/ data (need to decide if updating is allowed - might not allow in beginning)
+      - otherwise, create new
+      - add to datum
+
+  for events, we do the same, except nest the individual data inserts, and again only save AT THE END WHEN EVERYTHING IS VALID YO
+    - any database errors need to roll everything back!!
+=end
 
   ##
   # These functions display all unique titles in the data table
@@ -60,13 +83,13 @@ class Datum < ActiveRecord::Base
 
   # THIS FUNCTION IS A PRESENTER-TYPE THING
   def value_to_string
-    
+
     # make sure one and only one field has a value
     if (num_data.nil? && text_data.nil? && time_data.nil?) and not missing
       CUSTOM_LOGGER.error "NO DATA VALUE! #{datum_id} #{time_data.nil?} #{missing}"
       raise StandardError, "No data value in datum object and no missing data flag"
     end
-    
+
     if missing
       "N/A - Data Missing"
     else
@@ -77,12 +100,12 @@ class Datum < ActiveRecord::Base
   private
 
   # UNITS NO LONGER STORED IN DATA TABLE
-  def assign_unit
-    if self.unit_name
-      u = DataUnit.find_or_create_by_name(self.unit_name)
-      self.data_unit = u
-    end
-  end
+  #def assign_unit
+  #  if self.unit_name
+  #    u = DataUnit.find_or_create_by_name(self.unit_name)
+  #    self.data_unit = u
+  #  end
+  #end
 
   def to_formatted_string
     #### DEPRECIATED!!!! USE DATA DICTIONARY!!!!! ######
