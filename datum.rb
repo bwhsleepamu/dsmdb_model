@@ -29,6 +29,7 @@ class Datum < ActiveRecord::Base
   VALIDATION! <- after it works w/o it
 
   we need to basically override the initialize and update functions, right? ya!
+    the ones where we can pass in a param[] hash - look them up.  are they generated?
 
   how does creating new differ from updating old??
 
@@ -57,45 +58,71 @@ class Datum < ActiveRecord::Base
   ##
   # Returns dictionary record for this datum
   def dictionary_record
-    DataDictionary.find_by_title(title)
+    # TODO: make sure returning empty record is desirable
+    DataDictionary.find_by_title(title) || DataDictionary.new
   end
 
 
-  # Return value of available field
-  # in future, refer to DATA DICTIONARY!!!  if no entry, then this could be fallback...
+  ##
+  # Set and Return data value
+
+  # TODO: add defaults
+  def value=(val)
+    case dictionary_record.data_type
+      when :text_type
+        self[:text_data] = val
+      when :num_type
+        self[:num_data] = val
+      when :time_type
+        self[:time_data] = val
+    end
+  end
+
   def value
-    # make sure one and only one field has a value
-    if (num_data.nil? && text_data.nil? && time_data.nil?) and not missing
-      CUSTOM_LOGGER.error "NO DATA VALUE! #{datum_id} #{time_data.nil?} #{missing}"
-      raise StandardError, "No data value in datum object and no missing data flag"
-    end
-
-    if missing
-      nil
-    elsif not num_data.nil?
-      num_data
-    elsif not text_data.nil?
-      text_data
-    else
-      time_data
+    case dictionary_record.data_type
+      when :text_type
+        self[:text_data]
+      when :num_type
+        self[:num_data]
+      when :time_type
+        self[:time_data]
     end
   end
+
+  # in future, refer to DATA DICTIONARY!!!  if no entry, then this could be fallback...
+  #def value
+  #  # make sure one and only one field has a value
+  #  if (num_data.nil? && text_data.nil? && time_data.nil?) and not missing
+  #    CUSTOM_LOGGER.error "NO DATA VALUE! #{datum_id} #{time_data.nil?} #{missing}"
+  #    raise StandardError, "No data value in datum object and no missing data flag"
+  #  end
+  #
+  #  if missing
+  #    nil
+  #  elsif not num_data.nil?
+  #    num_data
+  #  elsif not text_data.nil?
+  #    text_data
+  #  else
+  #    time_data
+  #  end
+  #end
 
   # THIS FUNCTION IS A PRESENTER-TYPE THING
-  def value_to_string
-
-    # make sure one and only one field has a value
-    if (num_data.nil? && text_data.nil? && time_data.nil?) and not missing
-      CUSTOM_LOGGER.error "NO DATA VALUE! #{datum_id} #{time_data.nil?} #{missing}"
-      raise StandardError, "No data value in datum object and no missing data flag"
-    end
-
-    if missing
-      "N/A - Data Missing"
-    else
-      to_formatted_string
-    end
-  end
+  #def value_to_string
+  #
+  #  # make sure one and only one field has a value
+  #  if (num_data.nil? && text_data.nil? && time_data.nil?) and not missing
+  #    CUSTOM_LOGGER.error "NO DATA VALUE! #{datum_id} #{time_data.nil?} #{missing}"
+  #    raise StandardError, "No data value in datum object and no missing data flag"
+  #  end
+  #
+  #  if missing
+  #    "N/A - Data Missing"
+  #  else
+  #    to_formatted_string
+  #  end
+  #end
 
   private
 
@@ -107,29 +134,29 @@ class Datum < ActiveRecord::Base
   #  end
   #end
 
-  def to_formatted_string
-    #### DEPRECIATED!!!! USE DATA DICTIONARY!!!!! ######
-    # special format needs first
-    case title
-      when "date_of_birth", "admit_date"
-        time_data.strftime('%x')
-      when "gender", "ethnic_category"
-        text_data.tr('_', ' ')
-      when "weight", "height", "naps_per_week", "owl_lark_score", "blood_pressure_diastolic", "blood_pressure_systolic", "heart_rate", "suite_number"
-        number_to_human(num_data)
-      when "race"
-        r = YAML::load(text_data)
-        r.join(", ")
-      else
-        if !num_data.nil?
-          num_data
-        elsif !text_data.nil?
-          text_data
-        elsif !time_data.nil?
-          time_data.strftime('%X')
-        else
-          "N/A - Data Missing"
-        end
-    end
-  end
+  #def to_formatted_string
+  #  #### DEPRECIATED!!!! USE DATA DICTIONARY!!!!! ######
+  #  # special format needs first
+  #  case title
+  #    when "date_of_birth", "admit_date"
+  #      time_data.strftime('%x')
+  #    when "gender", "ethnic_category"
+  #      text_data.tr('_', ' ')
+  #    when "weight", "height", "naps_per_week", "owl_lark_score", "blood_pressure_diastolic", "blood_pressure_systolic", "heart_rate", "suite_number"
+  #      number_to_human(num_data)
+  #    when "race"
+  #      r = YAML::load(text_data)
+  #      r.join(", ")
+  #    else
+  #      if !num_data.nil?
+  #        num_data
+  #      elsif !text_data.nil?
+  #        text_data
+  #      elsif !time_data.nil?
+  #        time_data.strftime('%X')
+  #      else
+  #        "N/A - Data Missing"
+  #      end
+  #  end
+  #end
 end
