@@ -4,4 +4,14 @@ class EventTag < ActiveRecord::Base
   attr_accessible :tag_name, :description
   
   has_and_belongs_to_many :events, :join_table => "events_event_tags"
+
+
+  def save
+    # start transaction
+    EventTag.transaction do
+      CUSTOM_LOGGER.info "Started transaction"
+      super
+    end
+
+  end
 end

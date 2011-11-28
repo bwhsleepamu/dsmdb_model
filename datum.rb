@@ -3,12 +3,24 @@ class Datum < ActiveRecord::Base
 
   set_primary_key self.name.downcase+'_id'
   set_sequence_name 'id_seq'
-  attr_accessible :event_id, :unit_id, :documentation_id,  :title, :num_data, :text_data, :description, :time_data, :unit_name, :source_id, :missing
 
+  ##
+  # Attributes
+  attr_accessible :event_id, :documentation_id,  :title, :num_data, :text_data, :description, :time_data, :unit_name, :source_id, :missing
+
+  ##
+  # Associations
   belongs_to :event
   belongs_to :source
   belongs_to :quality_flag
   belongs_to :documentation
+
+  ##
+  # Validations
+
+  # make sure title is in data dictionary
+  # required: event_id, title
+
 
   attr_accessor :unit_name
 
@@ -43,6 +55,46 @@ class Datum < ActiveRecord::Base
   for events, we do the same, except nest the individual data inserts, and again only save AT THE END WHEN EVERYTHING IS VALID YO
     - any database errors need to roll everything back!!
 =end
+  def set_attributes(attributes)
+    # documentation
+    if attributes[:documentation]
+      if attributes[:documentation][:documentation_id]
+        self.documentation = Documentation.find(attributes[:documentation][:documentation_id])
+      else
+        self.documentation = Documentation.new(attributes[:documentation])
+      end
+    end
+
+    # sources
+    if attributes[:source]
+      if attributes[:source][:source_id]
+        self.source = Source.find(attributes[:source][:source_id])
+      else
+        self.source = Source.new(attributes[:source])
+      end
+    end
+
+    # the rest
+    self.attributes = attributes[:datum]
+  end
+
+  def save
+    Datum.transaction do
+      # save documentation
+      self.documentation.save if self.documentation.exists?
+
+      # save sources
+      self.source.save if self.source.exists?
+
+      super
+    end
+
+  end
+
+  def update_attributes(attributes)
+    set_attributes attributes
+    save
+  end
 
   ##
   # These functions display all unique titles in the data table
