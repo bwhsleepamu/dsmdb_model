@@ -29,6 +29,12 @@ class Subject < ActiveRecord::Base
     end
   end
 
+  # Checks
+  def raster?
+    events.where(:name => "in_bed_start").length > 0
+  end
+
+
   # Getters
   def demographics
     #events.where(:name => "demographics").first
