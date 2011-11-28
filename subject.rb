@@ -3,7 +3,7 @@ class Subject < ActiveRecord::Base
   set_sequence_name 'id_seq'
   attr_accessible :subject_code, :study_id, :notes, :new_irb_attributes, :deleted_irb_ids, :pl_id
 
-  validates :subject_code, :presence => true, :uniqueness => true
+  validates :subject_code, :presence => true, :uniqueness => true, :format => { :with => /\A\d+[A-Z]+[A-Z0-9]*\z/, :message => "Invalid subject code format"}
 
   # Associations
   belongs_to :study
@@ -16,6 +16,18 @@ class Subject < ActiveRecord::Base
   after_update :save_irbs
   before_destroy :delete_irb_associations
 
+  # Class Methods
+  def self.subject_code_format
+    /\A\d+[A-Z]+[A-Z0-9]*\z/
+  end
+
+  def self.search(search)
+    if search
+      where('subject_code LIKE ?', "%#{search}%")
+    else
+      scoped
+    end
+  end
 
   # Getters
   def demographics
@@ -24,6 +36,7 @@ class Subject < ActiveRecord::Base
   end
 
   # computed information:
+  # TODO: SEARCH ON THIS INFO
   def age
     d = demographics
     if d
@@ -75,4 +88,5 @@ class Subject < ActiveRecord::Base
   def delete_irb_associations
     self.irbs.delete(self.irbs)
   end
+
 end

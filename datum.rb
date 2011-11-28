@@ -81,10 +81,10 @@ class Datum < ActiveRecord::Base
   def save
     Datum.transaction do
       # save documentation
-      self.documentation.save if self.documentation.exists?
+      self.documentation.save unless self.documentation.nil?
 
       # save sources
-      self.source.save if self.source.exists?
+      self.source.save unless self.source.nil?
 
       super
     end

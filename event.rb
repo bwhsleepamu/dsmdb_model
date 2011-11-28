@@ -55,12 +55,12 @@ class Event < ActiveRecord::Base
 
   # Ensures all saves are in one transaction: overrides default save function, but calls it eventually
   def save
-    Event.transaction do
+    self.transaction do
       # save source
       # save documentation
       # save data
-      self.source.save if self.source.exists?
-      self.documentation.save if self.documentation.exists?
+      self.source.save unless self.source.nil?
+      self.documentation.save unless self.documentation.nil?
 
       self.data.each {|d| d.save}
 
