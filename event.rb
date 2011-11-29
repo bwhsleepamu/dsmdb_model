@@ -5,7 +5,8 @@ class Event < ActiveRecord::Base
                   :labtime_hr, :labtime_min, :labtime_sec, :labtime_year,
                   :realtime, :notes, :labtime_decimal, :documentation_id,
                   :quality_flag_id
-
+  ##
+  # Associations
   belongs_to :documentation
   belongs_to :source
   belongs_to :study
