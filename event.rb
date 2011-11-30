@@ -15,6 +15,12 @@ class Event < ActiveRecord::Base
   has_many :data
 
   ##
+  # Validations
+  validates_presence_of :subject_id
+  validates_with EventValidator
+  validates_associated :data, :documentation, :source
+
+  ##
   # These three functions allow atomic saving of an event and all child objects
 
   # sets attributes of given event and all children from a nested attribute hash
@@ -38,13 +44,25 @@ class Event < ActiveRecord::Base
     end
 
     # data
-    attributes[:data].each do datum_attributes
+    attributes[:data].each do |datum_title, datum_attributes|
       # create datum
-      self.data << Datum.new(datum_attributes)
+      CUSTOM_LOGGER.info "data attributes: #{datum_attributes}"
+      if datum_attributes[:datum_id] && self.data.find_by_datum_id(datum_attributes[:datum_id])
+        # update existing datum
+        datum = self.data.find_by_datum_id(datum_attributes[:datum_id])
+        CUSTOM_LOGGER.info "UPDATE!! #{datum.to_yaml}"
+        datum.set_attributes(datum_attributes)
+        CUSTOM_LOGGER.info "UPDATE!! #{datum.to_yaml} #{datum.valid?}"
+        datum.save      ### TODO: HOW CAN WE SAVE LATER????
+      else
+        # create new datum
+        datum = self.data.build
+        datum.set_attributes datum_attributes
+      end
     end
-
-    self.attributes = attributes[:event]
-
+    CUSTOM_LOGGER.info "event attributes: #{attributes}"
+    self.attributes = attributes
+    CUSTOM_LOGGER.info "validd??? #{self.valid?}"
   end
 
   # Overrides update_attributes function to use set attributes
@@ -55,7 +73,7 @@ class Event < ActiveRecord::Base
 
 
   # Ensures all saves are in one transaction: overrides default save function, but calls it eventually
-  def save
+  def save(perform_validation=true)
     self.transaction do
       # save source
       # save documentation
@@ -63,9 +81,12 @@ class Event < ActiveRecord::Base
       self.source.save unless self.source.nil?
       self.documentation.save unless self.documentation.nil?
 
-      self.data.each {|d| d.save}
+      self.data.each do |d|
+        CUSTOM_LOGGER.info "SAVING: #{d.to_json}"
+        d.save
+      end
 
-      super
+      super(perform_validation)
     end
   end
 

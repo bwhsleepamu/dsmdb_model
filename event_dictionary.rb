@@ -15,7 +15,7 @@ class EventDictionary < ActiveRecord::Base
   # Associations
   has_many :event_dictionary_data_fields, :foreign_key => "event_record_id"
   has_many :data_dictionary, :through => :event_dictionary_data_fields
-  has_and_belongs_to_many :event_tags, :join_table => "events_event_tags"
+  has_and_belongs_to_many :event_tags, :join_table => "events_event_tags", :foreign_key => "record_id"
 
   # Validations
   validates_presence_of :name, :description
@@ -41,8 +41,6 @@ class EventDictionary < ActiveRecord::Base
         eddf.save
       end
     end
-
-
   end
 
   def add_tags(tag_list)

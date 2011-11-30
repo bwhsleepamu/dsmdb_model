@@ -4,6 +4,8 @@ class Subject < ActiveRecord::Base
   attr_accessible :subject_code, :study_id, :notes, :new_irb_attributes, :deleted_irb_ids, :pl_id
 
   validates :subject_code, :presence => true, :uniqueness => true, :format => { :with => /\A\d+[A-Z]+[A-Z0-9]*\z/, :message => "Invalid subject code format"}
+  validates_associated :events
+
 
   # Associations
   belongs_to :study
@@ -38,14 +40,14 @@ class Subject < ActiveRecord::Base
   # Getters
   def demographics
     #events.where(:name => "demographics").first
-    Event.where({:name => "demographics", :subject_id => subject_id}).first
+    Event.where({:name => "demographics", :subject_id => subject_id}).first || Event.new
   end
 
   # computed information:
   # TODO: SEARCH ON THIS INFO
   def age
     d = demographics
-    if d
+    unless d.new_record?
       admit_date = d.data.find_by_title("admit_date").value
       dob = d.data.find_by_title("date_of_birth").value
 
@@ -64,6 +66,7 @@ class Subject < ActiveRecord::Base
     end
     age || 'missing'
   end
+
 
   # Setters
   def new_irb_attributes=(irb_attributes)

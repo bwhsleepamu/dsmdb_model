@@ -1,12 +1,13 @@
 class Datum < ActiveRecord::Base
   include ActionView::Helpers::NumberHelper
+  include ActiveModel::Validations
 
   set_primary_key self.name.downcase+'_id'
   set_sequence_name 'id_seq'
 
   ##
   # Attributes
-  attr_accessible :event_id, :documentation_id,  :title, :num_data, :text_data, :description, :time_data, :unit_name, :source_id, :missing
+  attr_accessible :event_id, :documentation_id,  :title, :num_data, :text_data, :time_data, :unit_name, :source_id, :missing, :notes
 
   ##
   # Associations
@@ -17,6 +18,9 @@ class Datum < ActiveRecord::Base
 
   ##
   # Validations
+  validates_presence_of :event_id
+  validates_with DatumValidator
+  validates_associated :source, :documentation
 
   # make sure title is in data dictionary
   # required: event_id, title
@@ -75,10 +79,10 @@ class Datum < ActiveRecord::Base
     end
 
     # the rest
-    self.attributes = attributes[:datum]
+    self.attributes = attributes
   end
 
-  def save
+  def save(perform_validation=true)
     Datum.transaction do
       # save documentation
       self.documentation.save unless self.documentation.nil?
