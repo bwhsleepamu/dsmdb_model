@@ -18,9 +18,9 @@ class Datum < ActiveRecord::Base
 
   ##
   # Validations
-  validates_presence_of :event_id
+  #validates_presence_of :event_id
   validates_with DatumValidator
-  validates_associated :source, :documentation
+  #validates_associated :source, :documentation
 
   # make sure title is in data dictionary
   # required: event_id, title
