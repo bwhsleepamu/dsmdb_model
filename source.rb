@@ -2,10 +2,21 @@ class Source < ActiveRecord::Base
   set_primary_key self.name.downcase+'_id'
   set_sequence_name 'id_seq'
   attr_accessible :user, :source_type, :reference, :description
-  
+
+  ##
+  # Associations
   has_many :events
   has_many :data
-  
+
+  ##
+  # Validations
+  validates_presence_of :user, :source_type, :reference
+  validates_uniqueness_of :source_type, :scope => :reference, :message => "Combination of given source type, and reference already exists"
+  validates_length_of :user, :maximum => 254
+  validates_length_of :reference, :maximum => 254
+  validates_length_of :source_type, :maximum => 254
+  validates_length_of :description, :maximum => 254
+
   def self.create_source?(attr)
     unless attr.nil?
      unless (attr[:source_type].empty? and attr[:source_type].empty? and attr[:description].empty?)

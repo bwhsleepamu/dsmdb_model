@@ -49,5 +49,8 @@ class EventDictionary < ActiveRecord::Base
     end
   end
 
+  def required_data_records
+    event_dictionary_data_fields.where(:required => false).map { |x| x.data_dictionary }
+  end
 
 end

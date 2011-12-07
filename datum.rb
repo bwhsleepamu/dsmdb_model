@@ -8,6 +8,7 @@ class Datum < ActiveRecord::Base
   ##
   # Attributes
   attr_accessible :event_id, :documentation_id,  :title, :num_data, :text_data, :time_data, :unit_name, :source_id, :missing, :notes
+  attr_accessor :unit_name
 
   ##
   # Associations
@@ -18,15 +19,11 @@ class Datum < ActiveRecord::Base
 
   ##
   # Validations
-  #validates_presence_of :event_id
+
   validates_with DatumValidator
-  #validates_associated :source, :documentation
+  validates_presence_of :event_id
+  validates_associated :source, :documentation
 
-  # make sure title is in data dictionary
-  # required: event_id, title
-
-
-  attr_accessor :unit_name
 
   ##
   # Saving A Datum
@@ -59,6 +56,8 @@ class Datum < ActiveRecord::Base
   for events, we do the same, except nest the individual data inserts, and again only save AT THE END WHEN EVERYTHING IS VALID YO
     - any database errors need to roll everything back!!
 =end
+
+
   def set_attributes(attributes)
     # documentation
     if attributes[:documentation]
