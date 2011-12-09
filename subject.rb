@@ -4,7 +4,18 @@ class Subject < ActiveRecord::Base
   attr_accessible :subject_code, :study_id, :notes, :new_irb_attributes, :deleted_irb_ids, :pl_id
 
   validates :subject_code, :presence => true, :uniqueness => true, :format => { :with => /\A\d+[A-Z]+[A-Z0-9]*\z/, :message => "Invalid subject code format"}
-  validates_associated :events
+  #validates_associated :events
+  validates_with SubjectValidator
+
+  def after_initialize
+    ##
+    # Initialize required events that should exist for every subject.  Only do this when first creating subject
+
+    # subject demographics
+    if self.new_record?
+       self.events << Event.scaffold("subject_demographics", self[:subject_id]) unless self.events.find_by_name("subject_demographics")
+    end
+  end
 
 
   # Associations

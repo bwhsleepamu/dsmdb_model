@@ -21,7 +21,6 @@ class Datum < ActiveRecord::Base
   # Validations
 
   validates_with DatumValidator
-  validates_presence_of :event_id
   validates_associated :source, :documentation
 
   ##

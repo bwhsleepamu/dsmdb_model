@@ -17,9 +17,12 @@ class Event < ActiveRecord::Base
 
   ##
   # Validations
-  validates_presence_of :subject_id
   validates_with EventValidator
-  validates_associated :data, :documentation, :source
+  validates_associated :documentation, :source
+
+
+
+
 
   ##
   # Class Functions
@@ -100,7 +103,6 @@ class Event < ActiveRecord::Base
   # Ensures all saves are in one transaction: overrides default save function, but calls it eventually
   def save(perform_validation=true)
     self.transaction do
-      self[:event_id] ||= self.connection.next_sequence_value("id_seq")
       # save source
       # save documentation
       # save data
@@ -108,9 +110,7 @@ class Event < ActiveRecord::Base
       self.documentation.save unless self.documentation.nil?
 
       self.data.each do |d|
-        CUSTOM_LOGGER.info "SAVING: #{d.to_json}"
-        d.event_id ||= self[:event_id]
-        #d.save
+        d.save
       end
 
       super(perform_validation)
