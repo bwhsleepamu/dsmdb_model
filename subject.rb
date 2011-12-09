@@ -98,4 +98,9 @@ class Subject < ActiveRecord::Base
     self.irbs.delete(self.irbs)
   end
 
+  ##
+  # When a new subject is created, we might want to create a dummy demographics event based on the data dictionary
+  # definitions for such an event (subject_demographics)
+
+
 end

@@ -24,6 +24,12 @@ class Datum < ActiveRecord::Base
   validates_presence_of :event_id
   validates_associated :source, :documentation
 
+  ##
+  # Class Methods
+  def self.scaffold(title)
+    self.new(:missing => true, :title => title)
+  end
+
 
   ##
   # Saving A Datum

@@ -22,6 +22,27 @@ class Event < ActiveRecord::Base
   validates_associated :data, :documentation, :source
 
   ##
+  # Class Functions
+  def self.scaffold(name, subject_id, realtime = nil, labtime = nil)
+    # create a skeleton event using event dictionary definition with empty data objects etc.
+      # minimal information for validation to pass!!  should i enforce it here?
+    record = EventDictionary.find_by_name(name)
+    if record
+      realtime = DateTime.now if realtime.nil? && labtime.nil?
+      e = self.new(:name => name, :subject_id => subject_id, :realtime => realtime)
+      e.set_attributes(:labtime_year => labtime[:year], :labtime_hr => labtime[:hr], :labtime_min => labtime[:min], :labtime_sec => labtime[:sec]) unless labtime.nil?
+
+      record.data_dictionary.each do |dd_record|
+        e.data << Datum.scaffold(dd_record.title)
+      end
+
+      e
+    else
+      nil
+    end
+  end
+
+  ##
   # These three functions allow atomic saving of an event and all child objects
 
   # sets attributes of given event and all children from a nested attribute hash
@@ -45,22 +66,25 @@ class Event < ActiveRecord::Base
     end
 
     # data
-    attributes[:data].each do |datum_title, datum_attributes|
-      # create datum
-      CUSTOM_LOGGER.info "data attributes: #{datum_attributes}"
-      if datum_attributes[:datum_id] && self.data.find_by_datum_id(datum_attributes[:datum_id])
-        # update existing datum
-        datum = self.data.find_by_datum_id(datum_attributes[:datum_id])
-        CUSTOM_LOGGER.info "UPDATE!! #{datum.to_yaml}"
-        datum.set_attributes(datum_attributes)
-        CUSTOM_LOGGER.info "UPDATE!! #{datum.to_yaml} #{datum.valid?}"
-        datum.save      ### TODO: HOW CAN WE SAVE LATER????
-      else
-        # create new datum
-        datum = self.data.build
-        datum.set_attributes datum_attributes
+    if attributes[:data]
+      attributes[:data].each do |datum_title, datum_attributes|
+        # update or create datum
+        CUSTOM_LOGGER.info "data attributes: #{datum_attributes}"
+        if datum_attributes[:datum_id] && self.data.find_by_datum_id(datum_attributes[:datum_id])
+          # update existing datum
+          datum = self.data.find_by_datum_id(datum_attributes[:datum_id])
+          CUSTOM_LOGGER.info "UPDATE!! #{datum.to_yaml}"
+          datum.set_attributes(datum_attributes)
+          CUSTOM_LOGGER.info "UPDATE!! #{datum.to_yaml} #{datum.valid?}"
+          datum.save      ### TODO: HOW CAN WE SAVE LATER????
+        else
+          # create new datum
+          datum = self.data.build
+          datum.set_attributes datum_attributes
+        end
       end
     end
+
     CUSTOM_LOGGER.info "event attributes: #{attributes}"
     self.attributes = attributes
     CUSTOM_LOGGER.info "validd??? #{self.valid?}"
@@ -76,6 +100,7 @@ class Event < ActiveRecord::Base
   # Ensures all saves are in one transaction: overrides default save function, but calls it eventually
   def save(perform_validation=true)
     self.transaction do
+      self[:event_id] ||= self.connection.next_sequence_value("id_seq")
       # save source
       # save documentation
       # save data
@@ -84,7 +109,8 @@ class Event < ActiveRecord::Base
 
       self.data.each do |d|
         CUSTOM_LOGGER.info "SAVING: #{d.to_json}"
-        d.save
+        d.event_id ||= self[:event_id]
+        #d.save
       end
 
       super(perform_validation)
@@ -119,6 +145,20 @@ class Event < ActiveRecord::Base
   def dictionary_record
     EventDictionary.find_by_name(self[:name])
   end
+
+  ##
+  # Event creation for a given event type - w/o form use?
+
+  # right now, events are created and data is added using forms and attribute hashes.
+
+  # we might need a way of creating an event object that is validateable but does not have all the data filled in.
+
+  # each datum is a place-holder for future data.  why a place-holder?  why not just add the datum when the data is
+  # added?  validation will not pass for required data.
+
+
+
+
 
   ###### OUTDATED!!! #### WHERE TO I STORE THIS STUFF?
   ### Creators for different types of events ##
