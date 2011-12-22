@@ -18,7 +18,7 @@ class Event < ActiveRecord::Base
   ##
   # Validations
   validates_with EventValidator
-  validates_associated :documentation, :source
+  validates_associated :data, :documentation, :source
 
 
 

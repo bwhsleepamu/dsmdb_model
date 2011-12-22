@@ -51,7 +51,7 @@ class Subject < ActiveRecord::Base
   # Getters
   def demographics
     #events.where(:name => "demographics").first
-    Event.where({:name => "demographics", :subject_id => subject_id}).first || Event.new
+    events.select{|e| e.name == "subject_demographics"}.first
   end
 
   # computed information:
