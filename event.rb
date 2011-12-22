@@ -38,7 +38,6 @@ class Event < ActiveRecord::Base
       record.data_dictionary.each do |dd_record|
         e.data << Datum.scaffold(dd_record.title)
       end
-
       e
     else
       nil
