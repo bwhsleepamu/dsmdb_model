@@ -20,10 +20,6 @@ class Event < ActiveRecord::Base
   validates_with EventValidator
   validates_associated :data, :documentation, :source
 
-
-
-
-
   ##
   # Class Functions
   def self.scaffold(name, subject_id, realtime = nil, labtime = nil)

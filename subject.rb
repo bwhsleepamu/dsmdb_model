@@ -58,7 +58,7 @@ class Subject < ActiveRecord::Base
   # TODO: SEARCH ON THIS INFO
   def age
     d = demographics
-    unless d.new_record?
+    if d
       admit_date = d.data.find_by_title("admit_date").value
       dob = d.data.find_by_title("date_of_birth").value
 
