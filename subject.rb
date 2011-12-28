@@ -7,17 +7,6 @@ class Subject < ActiveRecord::Base
   #validates_associated :events
   validates_with SubjectValidator
 
-  def after_initialize
-    ##
-    # Initialize required events that should exist for every subject.  Only do this when first creating subject
-
-    # subject demographics
-    if self.new_record?
-       self.events << Event.scaffold("subject_demographics", self[:subject_id]) unless self.events.find_by_name("subject_demographics")
-    end
-  end
-
-
   # Associations
   belongs_to :study
   belongs_to :personnel, :foreign_key => "pl_id"
@@ -28,6 +17,7 @@ class Subject < ActiveRecord::Base
   # Callbacks
   after_update :save_irbs
   before_destroy :delete_irb_associations
+  after_initialize :init_default_events
 
   # Class Methods
   def self.subject_code_format
@@ -57,6 +47,9 @@ class Subject < ActiveRecord::Base
   # computed information:
   # TODO: SEARCH ON THIS INFO
   def age
+    # TODO: REFACTOR!! better ways of finding demographics and computing common things that have a failsafe for missing info!!!!!!!!!
+    return nil
+
     d = demographics
     if d
       admit_date = d.data.find_by_title("admit_date").value
@@ -113,5 +106,17 @@ class Subject < ActiveRecord::Base
   # When a new subject is created, we might want to create a dummy demographics event based on the data dictionary
   # definitions for such an event (subject_demographics)
 
+
+  private
+
+  def init_default_events
+    ##
+    # Initialize required events that should exist for every subject.  Only do this when first creating subject
+
+    # subject demographics
+    if self.new_record?
+       self.events << Event.scaffold("subject_demographics", self[:subject_id]) unless self.events.find_by_name("subject_demographics")
+    end
+  end
 
 end

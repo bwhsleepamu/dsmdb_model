@@ -12,7 +12,7 @@ class EventDictionary < ActiveRecord::Base
   ##
   # Attributes
   attr_accessor :data_fields
-  attr_accessible :name, :description, :data_fields
+  attr_accessible :name, :description, :data_fields, :event_tag_ids
 
   ##
   # Associations
@@ -31,7 +31,17 @@ class EventDictionary < ActiveRecord::Base
 
   ##
   # Scopes
-  #scope :has_tags, lambda { |tags| joins(:) }
+  scope :has_tags, (lambda do |tags|
+    # selects all records that have the given tag(s)
+    tags = Array.wrap(tags)
+    where(:record_id =>
+    joins(:event_tags)
+      .select("event_dictionary.record_id")
+      .where(:event_tags=>{:tag_name=>tags})
+      .group("event_dictionary.record_id")
+      .having('count(event_dictionary.record_id) = ?', [tags.size]) # selects only those that match each tag
+    )
+  end)
 
   ##
   # Methods
@@ -54,11 +64,11 @@ class EventDictionary < ActiveRecord::Base
     end
   end
 
-  def add_tags(tag_list)
-    tag_list.each do |tag|
-      event_tags << EventTag.find_or_create_by_tag_name(tag)
-    end
-  end
+  #def add_tags(tag_list)
+  #  event_tag_ids.each do |tag|
+  #    event_tags << EventTag.find_or_create_by_tag_name(tag)
+  #  end
+  #end
 
   def required_data_records
     event_dictionary_data_fields.where(:required => false).map { |x| x.data_dictionary }
