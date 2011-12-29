@@ -10,7 +10,7 @@ class Subject < ActiveRecord::Base
   # Associations
   belongs_to :study
   belongs_to :personnel, :foreign_key => "pl_id"
-  has_many :events
+  has_many :events, :limit => 10
   has_and_belongs_to_many :irbs
 
 
@@ -114,9 +114,13 @@ class Subject < ActiveRecord::Base
     # Initialize required events that should exist for every subject.  Only do this when first creating subject
 
     # subject demographics
+
+    ActiveRecord::Calculations
     if self.new_record?
-       self.events << Event.scaffold("subject_demographics", self[:subject_id]) unless self.events.find_by_name("subject_demographics")
+      self.events << Event.scaffold("subject_demographics", self[:subject_id]) unless self.events.find_by_name("subject_demographics")
     end
+
+    # for now, re-ini
   end
 
 end
