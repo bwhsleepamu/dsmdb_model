@@ -6,19 +6,20 @@ class EventDictionary < ActiveRecord::Base
 
   ##
   # Callbacks
-  before_save :delete_data_fields
+  before_save :delete_data_fields, :add_tags
   after_save :add_data_fields
 
   ##
   # Attributes
-  attr_accessor :data_fields
-  attr_accessible :name, :description, :data_fields, :event_tag_ids
+  attr_accessor :data_fields, :tag_names
+  attr_accessible :name, :description, :data_fields, :event_tag_ids, :tag_names
 
   ##
   # Associations
   has_many :event_dictionary_data_fields, :foreign_key => "event_record_id"
   has_many :data_dictionary, :through => :event_dictionary_data_fields
-  has_and_belongs_to_many :event_tags, :join_table => "events_event_tags", :foreign_key => "record_id"
+  has_many :events_event_tags, :foreign_key => "record_id"
+  has_many :event_tags, :through => :events_event_tags
 
   ##
   # Validations
@@ -35,12 +36,12 @@ class EventDictionary < ActiveRecord::Base
     # selects all records that have the given tag(s)
     tags = Array.wrap(tags)
     where(:record_id =>
-    joins(:event_tags)
-      .select("event_dictionary.record_id")
-      .where(:event_tags=>{:tag_name=>tags})
-      .group("event_dictionary.record_id")
-      .having('count(event_dictionary.record_id) = ?', [tags.size]) # selects only those that match each tag
-    )
+      joins(:event_tags)
+        .select("event_dictionary.record_id")
+        .where(:event_tags=>{:tag_name=>tags})
+        .group("event_dictionary.record_id")
+        .having('count(event_dictionary.record_id) = ?', [tags.size]) # selects only those that match each tag
+      )
   end)
 
   ##
@@ -64,11 +65,18 @@ class EventDictionary < ActiveRecord::Base
     end
   end
 
-  #def add_tags(tag_list)
-  #  event_tag_ids.each do |tag|
-  #    event_tags << EventTag.find_or_create_by_tag_name(tag)
-  #  end
-  #end
+  def add_tags
+    self.event_tags = []
+    tag_names.split(', ').each do |tag_name|
+      begin
+        tag = EventTag.find_or_create_by_tag_name(tag_name.strip)
+        CUSTOM_LOGGER.info "tag: #{tag.tag_name} valid?: #{tag.valid?} tags: #{self.event_tags}"
+        self.event_tags << tag if tag.valid? # only save if creating valid tag
+      rescue
+      end
+    end
+    CUSTOM_LOGGER.info self.event_tags
+  end
 
   def required_data_records
     event_dictionary_data_fields.where(:required => false).map { |x| x.data_dictionary }
