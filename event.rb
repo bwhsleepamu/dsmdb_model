@@ -13,7 +13,7 @@ class Event < ActiveRecord::Base
   belongs_to :study
   belongs_to :subject
   belongs_to :quality_flag
-  has_many :data
+  has_many :data, :order => "title asc"
 
   ##
   # Validations

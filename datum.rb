@@ -18,8 +18,10 @@ class Datum < ActiveRecord::Base
   belongs_to :documentation
 
   ##
-  # Validations
+  # Callbacks
 
+  ##
+  # Validations
   validates_with DatumValidator
   validates_associated :source, :documentation
 
@@ -94,6 +96,7 @@ class Datum < ActiveRecord::Base
       # save sources
       self.source.save unless self.source.nil?
 
+
       super
     end
 
@@ -146,6 +149,14 @@ class Datum < ActiveRecord::Base
         self[:num_data]
       when :time_type
         self[:time_data]
+    end
+  end
+
+  def value_for_display
+    if missing?
+      "missing value"
+    else
+      value
     end
   end
 

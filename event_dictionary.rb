@@ -44,6 +44,11 @@ class EventDictionary < ActiveRecord::Base
       )
   end)
 
+  scope :has_data, (lambda do |data_titles|
+    data_titles = Array.wrap(data_titles)
+    where(:record_id => joins(:data_dictionary).select("event_dictionary.record_id").where(:data_dictionary => {:title => data_titles }).group("event_dictionary.record_id").having("count(event_dictionary.record_id) = ?", [data_titles.size]))
+  end)
+
   ##
   # Methods
   #

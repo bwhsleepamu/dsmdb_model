@@ -5,6 +5,7 @@ class Subject < ActiveRecord::Base
 
   validates :subject_code, :presence => true, :uniqueness => true, :format => { :with => /\A\d+[A-Z]+[A-Z0-9]*\z/, :message => "Invalid subject code format"}
   #validates_associated :events
+  #validates_presence_of :personnel, :irbs
   validates_with SubjectValidator
 
   # Associations
@@ -18,7 +19,7 @@ class Subject < ActiveRecord::Base
   after_update :save_irbs
   before_destroy :delete_irb_associations
   after_initialize :init_default_events
-
+  before_validation :add_demographics
   # Class Methods
   def self.subject_code_format
     /\A\d+[A-Z]+[A-Z0-9]*\z/
@@ -38,13 +39,23 @@ class Subject < ActiveRecord::Base
   end
 
 
+  ##
   # Getters
+
+  ## demographics
   def demographics
-    #events.where(:name => "demographics").first
-    events.select{|e| e.name == "subject_demographics"}.first
+    events.where(:name => "subject_demographics").first || events.select{|e| e.name == "subject_demographics"}.first
   end
 
-  # computed information:
+  def demographics_sources(title)
+    # all event names with the given tags and data, except for the main subject_demographics event
+    possible_names = (EventDictionary.has_tags(["subject_data", "demographics"]).has_data(title)).map(&:name)  - ["subject_demographics"]
+    events.where(:name => possible_names).map(&:name)
+  end
+
+  ##
+  # Computed Attributes
+
   # TODO: SEARCH ON THIS INFO
   def age
     # TODO: REFACTOR!! better ways of finding demographics and computing common things that have a failsafe for missing info!!!!!!!!!
@@ -72,6 +83,7 @@ class Subject < ActiveRecord::Base
   end
 
 
+  ##
   # Setters
   def new_irb_attributes=(irb_attributes)
     # Either find existing Irb object or create new one, then add to study
@@ -115,12 +127,14 @@ class Subject < ActiveRecord::Base
 
     # subject demographics
 
-    ActiveRecord::Calculations
     if self.new_record?
       self.events << Event.scaffold("subject_demographics", self[:subject_id]) unless self.events.find_by_name("subject_demographics")
     end
 
-    # for now, re-ini
+
+  end
+  def add_demographics
+    events << Event.scaffold("subject_demographics", self[:subject_id]) unless (events.where(:name => "subject_demographics").first || events.select{|e| e.name == "subject_demographics"}.first)
   end
 
 end
