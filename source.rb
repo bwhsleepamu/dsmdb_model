@@ -52,6 +52,10 @@ class Source < ActiveRecord::Base
     s.nil? ? Source.create(params) : s
   end
 
+  def to_s
+    "type: #{self[:source_type]} ref: #{self[:reference]}"
+  end
+
   private
 
 end

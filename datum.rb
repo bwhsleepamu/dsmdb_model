@@ -152,7 +152,14 @@ class Datum < ActiveRecord::Base
   def value
     case dictionary_record.data_type
       when :text_type
-        self[:text_data]
+        if dictionary_record.data_subtype == :list
+          # only return non-empty list elements
+          CUSTOM_LOGGER.info "WHY NOT YO? #{self[:text_data]} #{dictionary_record.data_type} #{dictionary_record.data_subtype}"
+
+          YAML::load(self[:text_data]).keep_if{|v| !v.empty?}
+        else
+          self[:text_data]
+        end
       when :num_type
         self[:num_data]
       when :time_type
@@ -163,6 +170,9 @@ class Datum < ActiveRecord::Base
   def value_for_display
     if missing?
       "missing value"
+    elsif dictionary_record.data_subtype == :list
+      CUSTOM_LOGGER.info "WHY NOT 2? #{value} #{dictionary_record.data_type} #{dictionary_record.data_subtype}"
+      value.join(",  ")
     else
       value
     end

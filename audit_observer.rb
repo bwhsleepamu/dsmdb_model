@@ -1,5 +1,5 @@
   class AuditObserver < ActiveRecord::Observer
-  observe :datum, :event, :event_tag, :study, :subject, :personnel, :irb
+  observe :datum, :event, :data_dictionary, :event_dictionary, :event_tag, :study, :subject, :source, :documentation, :personnel, :irb
 
   def after_destroy(record)
     log_change(record, "destroy")
