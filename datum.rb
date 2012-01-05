@@ -1,6 +1,7 @@
 class Datum < ActiveRecord::Base
   include ActionView::Helpers::NumberHelper
   include ActiveModel::Validations
+  include FormSubmit
 
   set_primary_key self.name.downcase+'_id'
   set_sequence_name 'id_seq'
@@ -66,23 +67,30 @@ class Datum < ActiveRecord::Base
 
 
   def set_attributes(attributes)
-    # documentation
-    if attributes[:documentation]
-      if attributes[:documentation][:documentation_id]
-        self.documentation = Documentation.find(attributes[:documentation][:documentation_id])
-      else
-        self.documentation = Documentation.new(attributes[:documentation])
-      end
-    end
+    ## documentation
+    #if attributes[:documentation]
+    #  if attributes[:documentation][:documentation_id]
+    #    self.documentation = Documentation.find(attributes[:documentation][:documentation_id])
+    #  else
+    #    self.documentation = Documentation.new(attributes[:documentation])
+    #  end
+    #end
+    #
+    ## sources
+    #if attributes[:source]
+    #  if attributes[:source][:source_id]
+    #    self.source = Source.find(attributes[:source][:source_id])
+    #  else
+    #    self.source = Source.new(attributes[:source])
+    #  end
+    #end
 
-    # sources
-    if attributes[:source]
-      if attributes[:source][:source_id]
-        self.source = Source.find(attributes[:source][:source_id])
-      else
-        self.source = Source.new(attributes[:source])
-      end
-    end
+
+    ## documentation
+    self.documentation = set_source_or_documentation attributes[:documentation], Documentation
+
+    ## source
+    self.source = set_source_or_documentation attributes[:source], Source
 
     # the rest
     self.attributes = attributes

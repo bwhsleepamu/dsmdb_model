@@ -1,6 +1,9 @@
 class Event < ActiveRecord::Base
+  include FormSubmit
+
   set_primary_key self.name.downcase+'_id'
   set_sequence_name 'id_seq'
+
   attr_accessible :subject_id, :study_id, :source_id, :name,
                   :labtime_hr, :labtime_min, :labtime_sec, :labtime_year,
                   :realtime, :notes, :labtime_decimal, :documentation_id,
@@ -45,47 +48,57 @@ class Event < ActiveRecord::Base
 
   # sets attributes of given event and all children from a nested attribute hash
   def set_attributes(attributes)
-    # documentation
-    if attributes[:documentation]
-      if attributes[:documentation][:documentation_id]
-        self.documentation = Documentation.find(attributes[:documentation][:documentation_id])
-      else
-        self.documentation = Documentation.new(attributes[:documentation])
-      end
-    end
+    ## documentation
+    #if attributes[:documentation]
+    #  if attributes[:documentation][:documentation_id]
+    #    self.documentation = Documentation.find(attributes[:documentation][:documentation_id])
+    #  else
+    #    self.documentation = Documentation.new(attributes[:documentation])
+    #  end
+    #end
+    #
+    ## sources
+    #if attributes[:source]
+    #  if attributes[:source][:source_id]
+    #    self.source = Source.find(attributes[:source][:source_id])
+    #  else
+    #    self.source = Source.new(attributes[:source])
+    #  end
+    #end
 
-    # sources
-    if attributes[:source]
-      if attributes[:source][:source_id]
-        self.source = Source.find(attributes[:source][:source_id])
-      else
-        self.source = Source.new(attributes[:source])
-      end
-    end
+    ## documentation
+    self.documentation = set_source_or_documentation attributes[:documentation], Documentation
 
-    # data
+    ## source
+    self.source = set_source_or_documentation attributes[:source], Source
+
+    ## data
     if attributes[:data]
       attributes[:data].each do |datum_title, datum_attributes|
+        #CUSTOM_LOGGER.info "DATA Before: #{self.data}"
+        #CUSTOM_LOGGER.info "here the if: #{datum_attributes[:datum_id]} && #{self.data.select{|d| (d.datum_id == datum_attributes[:datum_id].to_i)}}"
+
+        ## TODO: For events with multiple data of same title, allow addition of multiples.  BUT FOR EVENTS w/ one allowed, make sure to check that form resubmission does not create more than one!! BAHHH
         # update or create datum
-        CUSTOM_LOGGER.info "data attributes: #{datum_attributes}"
-        if datum_attributes[:datum_id] && self.data.find_by_datum_id(datum_attributes[:datum_id])
+        if datum_attributes[:datum_id] && self.data.select{|d| d.datum_id == datum_attributes[:datum_id].to_i}.any?
           # update existing datum
-          datum = self.data.find_by_datum_id(datum_attributes[:datum_id])
-          CUSTOM_LOGGER.info "UPDATE!! #{datum.to_yaml}"
+          datum = self.data.select{|d| d.datum_id == datum_attributes[:datum_id].to_i}.first
+          #CUSTOM_LOGGER.info "UPDATE Before #{datum}"
           datum.set_attributes(datum_attributes)
-          CUSTOM_LOGGER.info "UPDATE!! #{datum.to_yaml} #{datum.valid?}"
-          datum.save      ### TODO: HOW CAN WE SAVE LATER????
+          #CUSTOM_LOGGER.info "UPDATE After #{datum} #{datum.valid?}"
         else
-          # create new datum
+          #CUSTOM_LOGGER.info "CREATING NEW"
+          #create new datum
           datum = self.data.build
           datum.set_attributes datum_attributes
         end
+        #CUSTOM_LOGGER.info "DATA After: #{self.data}"
       end
     end
 
-    CUSTOM_LOGGER.info "event attributes: #{attributes}"
+    #CUSTOM_LOGGER.info "event attributes: #{attributes}"
     self.attributes = attributes
-    CUSTOM_LOGGER.info "validd??? #{self.valid?}"
+    #CUSTOM_LOGGER.info "validd??? #{self.valid?}"
   end
 
   # Overrides update_attributes function to use set attributes

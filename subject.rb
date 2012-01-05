@@ -43,14 +43,19 @@ class Subject < ActiveRecord::Base
   # Getters
 
   ## demographics
-  def demographics
-    events.where(:name => "subject_demographics").first || events.select{|e| e.name == "subject_demographics"}.first
+  def demographics(data_title = nil)
+    if data_title
+      event = events.where(:name => "subject_demographics").first || events.select{|e| e.name == "subject_demographics"}.first
+      event.data.where(:title => data_title).first
+    else
+      events.where(:name => "subject_demographics").first || events.select{|e| e.name == "subject_demographics"}.first
+    end
   end
 
   def demographics_sources(title)
     # all event names with the given tags and data, except for the main subject_demographics event
     possible_names = (EventDictionary.has_tags(["subject_data", "demographics"]).has_data(title)).map(&:name)  - ["subject_demographics"]
-    events.where(:name => possible_names).map(&:name)
+    events.where(:name => possible_names)
   end
 
   ##

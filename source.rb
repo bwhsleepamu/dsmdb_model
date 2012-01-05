@@ -4,6 +4,9 @@ class Source < ActiveRecord::Base
   attr_accessible :user, :source_type, :reference, :description
 
   ##
+  # Callbacks
+
+  ##
   # Associations
   has_many :events
   has_many :data
@@ -17,15 +20,16 @@ class Source < ActiveRecord::Base
   validates_length_of :source_type, :maximum => 254
   validates_length_of :description, :maximum => 254
 
-  def self.create_source?(attr)
-    unless attr.nil?
-     unless (attr[:source_type].empty? and attr[:source_type].empty? and attr[:description].empty?)
-        return true
-      end
-    end
-    
-    return false
-  end
+  ## what does this function do:
+  #def self.create_source?(attr)
+  #  unless attr.nil?
+  #   unless (attr[:source_type].empty? and attr[:source_type].empty? and attr[:description].empty?)
+  #      return true
+  #    end
+  #  end
+  #
+  #  return false
+  #end
 
   # Given a user, source type, and source reference, determine whether source is already in database
   #   if so, return it.
@@ -34,7 +38,7 @@ class Source < ActiveRecord::Base
   # WARNING! Function returns first source that matches given parameters - if parameters are not strict
   # enough, you might be left with an unsuitable source.
 
-  # Refactor into scope!!
+  # TODO: Refactor into scope??
   def self.find_or_create(params)
     s = Source.where(params)
 
@@ -47,4 +51,7 @@ class Source < ActiveRecord::Base
 
     s.nil? ? Source.create(params) : s
   end
+
+  private
+
 end
