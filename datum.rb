@@ -105,7 +105,7 @@ class Datum < ActiveRecord::Base
       self.source.save unless self.source.nil?
 
 
-      super
+      super(perform_validation)
     end
 
   end
@@ -177,6 +177,33 @@ class Datum < ActiveRecord::Base
       value
     end
   end
+
+
+#  def self.temp_map
+#     sql = "SELECT a.source_id as old_id, (select c.source_id from sources c where c.source_type = a.source_type and c.reference = a.reference and rownum < 2) as source_id
+#FROM sources a
+#where (source_type, reference) in (
+#select source_type, reference from sources
+#group by source_type, reference
+#having count(*) > 1)"
+#    c = ActiveRecord::Base.connection.execute(sql)
+#    h = {}
+#    while r = c.fetch()
+#      r[1] = r[1].to_i
+#      h[r[0]] = r[1]
+#    end
+#    h
+#  end
+#
+#  def self.change_sources_temp
+#    map = self.temp_map
+#    self.all.each do |e|
+#      if map.has_key? e.source_id
+#        e.source_id = map[e.source_id]
+#        e.save(false)
+#      end
+#    end
+#  end
 
   # in future, refer to DATA DICTIONARY!!!  if no entry, then this could be fallback...
   #def value
