@@ -24,6 +24,10 @@ class Event < ActiveRecord::Base
   validates_associated :data, :documentation, :source
 
   ##
+  # Callbacks
+
+
+  ##
   # Class Functions
   def self.scaffold(name, subject_id, realtime = nil, labtime = nil)
     # create a skeleton event using event dictionary definition with empty data objects etc.
@@ -117,11 +121,11 @@ class Event < ActiveRecord::Base
       self.source.save unless self.source.nil?
       self.documentation.save unless self.documentation.nil?
 
+      super(perform_validation)
+
       self.data.each do |d|
         d.save
       end
-
-      super(perform_validation)
     end
   end
 
@@ -219,8 +223,8 @@ class Event < ActiveRecord::Base
   #    when "demographics"
   #      titles = ["admit_date", "suite_number", "date_of_birth", "gender", "ethnic_category", "race" ]
   #      titles += ["height", "weight", "blood_pressure_systolic", "blood_pressure_diastolic", "heart rate"]
-  #      titles += ["usual school or work bedtime (lower bound)", "usual school or work bedtime (upper bound)"]
-  #      titles += ["usual day off or weekend bedtime (lower bound)", "usual day off or weekend bedtime (upper bound)"]
+  #      titles += ["usual school or work bedtime (lower bound)", "usual school or work bedtime (upper bound)"] X
+  #      titles += ["usual day off or weekend bedtime (lower bound)", "usual day off or weekend bedtime (upper bound)"] X
   #      titles += ["usual school or work waketime (lower bound)", "usual school or work waketime (upper bound)"]
   #      titles += ["usual day off or weekend waketime (lower bound)", "usual day off or weekend waketime (upper bound)"]
   #      titles += ["desired bedtime", "desired waketime", "naps per week", "nap time"]
@@ -313,6 +317,7 @@ class Event < ActiveRecord::Base
   #    end
   #  end
   #end
+
 
   private
 

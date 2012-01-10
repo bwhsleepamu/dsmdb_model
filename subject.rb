@@ -1,13 +1,21 @@
 class Subject < ActiveRecord::Base
+  ##
+  # Table Settings
   set_primary_key self.name.downcase+'_id'
   set_sequence_name 'id_seq'
+
+  ##
+  # Attributes
   attr_accessible :subject_code, :study_id, :notes, :new_irb_attributes, :deleted_irb_ids, :pl_id
 
+  ##
+  # Validations
   validates :subject_code, :presence => true, :uniqueness => true, :format => { :with => /\A\d+[A-Z]+[A-Z0-9]*\z/, :message => "Invalid subject code format"}
   #validates_associated :events
   #validates_presence_of :personnel, :irbs
   validates_with SubjectValidator
 
+  ##
   # Associations
   belongs_to :study
   belongs_to :personnel, :foreign_key => "pl_id"
@@ -15,11 +23,14 @@ class Subject < ActiveRecord::Base
   has_and_belongs_to_many :irbs
 
 
+  ##
   # Callbacks
   after_update :save_irbs
   before_destroy :delete_irb_associations
   after_initialize :init_default_events
   before_validation :add_demographics
+
+  ##
   # Class Methods
   def self.subject_code_format
     /\A\d+[A-Z]+[A-Z0-9]*\z/
@@ -33,6 +44,7 @@ class Subject < ActiveRecord::Base
     end
   end
 
+  ##
   # Checks
   def raster?
     events.where(:name => "in_bed_start").length > 0
@@ -64,27 +76,25 @@ class Subject < ActiveRecord::Base
   # TODO: SEARCH ON THIS INFO
   def age
     # TODO: REFACTOR!! better ways of finding demographics and computing common things that have a failsafe for missing info!!!!!!!!!
-    return nil
 
-    d = demographics
-    if d
-      admit_date = d.data.find_by_title("admit_date").value
-      dob = d.data.find_by_title("date_of_birth").value
 
-      if dob && admit_date
-        age = admit_date.year - dob.year
+    admit_date = demographics("admit_date").value if demographics("admit_date")
+    dob = demographics("date_of_birth").value if demographics("date_of_birth")
 
-        # if admit date is before birthday, take one year away
-        if admit_date.month < dob.month
+    if dob && admit_date
+      age = admit_date.year - dob.year
+
+      # if admit date is before birthday, take one year away
+      if admit_date.month < dob.month
+        age -= 1
+      elsif admit_date.month == dob.month
+        if admit_date.day < dob.day
           age -= 1
-        elsif admit_date.month == dob.month
-          if admit_date.day < dob.day
-            age -= 1
-          end
         end
       end
     end
-    age || 'missing'
+
+    age
   end
 
 

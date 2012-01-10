@@ -174,7 +174,7 @@ class Datum < ActiveRecord::Base
       CUSTOM_LOGGER.info "WHY NOT 2? #{value} #{dictionary_record.data_type} #{dictionary_record.data_subtype}"
       value.join(",  ")
     else
-      value
+      value.to_s
     end
   end
 
