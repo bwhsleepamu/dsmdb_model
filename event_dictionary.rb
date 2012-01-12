@@ -62,7 +62,7 @@ class EventDictionary < ActiveRecord::Base
     if data_fields
       data_fields.each do |field|
         if field["data_record_id"] != ""
-          #CUSTOM_LOGGER.info "er: #{record_id} dr: #{field["data_record_id"]} f?: #{field["data_record_id"] == ""}"
+          CUSTOM_LOGGER.info "er: #{record_id} dr: #{field["data_record_id"]} f?: #{field["data_record_id"] == ""}"
           eddf = EventDictionaryDataField.new(:event_record_id => record_id, :data_record_id => field["data_record_id"], :required => false)# take out for now: field["required"])
           eddf.save
         end

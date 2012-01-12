@@ -56,11 +56,21 @@ class Subject < ActiveRecord::Base
 
   ## demographics
   def demographics(data_title = nil)
-    if data_title
-      event = events.where(:name => "subject_demographics").first || events.select{|e| e.name == "subject_demographics"}.first
+    event = events.where(:name => "subject_demographics").first || events.select{|e| e.name == "subject_demographics"}.first
+    if event && data_title
       event.data.where(:title => data_title).first
     else
-      events.where(:name => "subject_demographics").first || events.select{|e| e.name == "subject_demographics"}.first
+      event
+    end
+  end
+
+  def demographics?(data_title = nil)
+    if data_title
+      demographic_datum = demographics(data_title)
+      # true if data exists and is not missing
+      (demographic_datum && !demographic_datum.missing)
+    else
+      !demographics.nil?
     end
   end
 
@@ -69,6 +79,7 @@ class Subject < ActiveRecord::Base
     possible_names = (EventDictionary.has_tags(["subject_data", "demographics"]).has_data(title)).map(&:name)  - ["subject_demographics"]
     events.where(:name => possible_names)
   end
+
 
   ##
   # Computed Attributes
