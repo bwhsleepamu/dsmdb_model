@@ -52,24 +52,8 @@ class Event < ActiveRecord::Base
 
   # sets attributes of given event and all children from a nested attribute hash
   def set_attributes(attributes)
-    ## documentation
-    #if attributes[:documentation]
-    #  if attributes[:documentation][:documentation_id]
-    #    self.documentation = Documentation.find(attributes[:documentation][:documentation_id])
-    #  else
-    #    self.documentation = Documentation.new(attributes[:documentation])
-    #  end
-    #end
-    #
-    ## sources
-    #if attributes[:source]
-    #  if attributes[:source][:source_id]
-    #    self.source = Source.find(attributes[:source][:source_id])
-    #  else
-    #    self.source = Source.new(attributes[:source])
-    #  end
-    #end
-
+    CUSTOM_LOGGER.info "EVENT ATTRIBUTES:"
+    CUSTOM_LOGGER.info attributes.to_yaml
     ## documentation
     self.documentation = set_source_or_documentation attributes[:documentation], Documentation
 

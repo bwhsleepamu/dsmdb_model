@@ -156,7 +156,7 @@ class Datum < ActiveRecord::Base
           # only return non-empty list elements
           CUSTOM_LOGGER.info "WHY NOT YO? #{self[:text_data]} #{dictionary_record.data_type} #{dictionary_record.data_subtype}"
 
-          YAML::load(self[:text_data]).keep_if{|v| !v.empty?}
+          YAML::load(self[:text_data]).keep_if{|v| !v.empty?} unless self[:text_data].nil?
         else
           self[:text_data]
         end
