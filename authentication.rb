@@ -1,13 +1,8 @@
-  class Authentication < ActiveRecord::Base
+class Authentication < ActiveRecord::Base
   belongs_to :user
-  
-  attr_accessible
-  
+
   def provider_name
-    if provider == 'open_id'
-      "OpenID"
-    else
-      provider.titleize
-    end
+    CUSTOM_LOGGER.info "WELL GETS TO PROVIDER NAME"
+    OmniAuth.config.camelizations[provider.to_s.downcase] || provider.to_s.titleize
   end
 end

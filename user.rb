@@ -1,4 +1,4 @@
-class User < ActiveRecord::Base  
+class User < ActiveRecord::Base
   has_many :authentications, :dependent => :delete_all
   has_and_belongs_to_many :roles
     
@@ -24,7 +24,7 @@ class User < ActiveRecord::Base
   
   # User Methods
   
-# Getter  
+  # Getter
   def full_name  
     [first_name, last_name].join(' ')  
   end  
@@ -46,21 +46,14 @@ class User < ActiveRecord::Base
   end
   
   def apply_omniauth(omniauth)
-    unless omniauth['user_info'].blank?
-      self.email = omniauth['user_info']['email'] if email.blank?
-      self.first_name = omniauth['user_info']['first_name'] if first_name.blank?
-      self.last_name = omniauth['user_info']['last_name'] if last_name.blank?
+    unless omniauth['info'].blank?
+      self.email = omniauth['info']['email'] if email.blank?
+      self.first_name = omniauth['info']['first_name'] if first_name.blank?
+      self.last_name = omniauth['info']['last_name'] if last_name.blank?
     end
-    CUSTOM_LOGGER.info omniauth.to_yaml
-    CUSTOM_LOGGER.info "provider: #{omniauth['provider']} uid: #{omniauth['uid']}"
-    
-    # create authentication
-    auth = authentications.build()
-    auth.provider = omniauth['provider']
-    auth.uid = omniauth['uid']
-    auth.save
+    authentications.build( provider: omniauth['provider'], uid: omniauth['uid'] )
   end
-  
+
   def password_required?
     (authentications.empty? || !password.blank?) && super
   end
